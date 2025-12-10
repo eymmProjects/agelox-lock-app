@@ -2,12 +2,16 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
   Activity,
+  Battery,
   Bell,
   Bluetooth,
   KeyRound,
   Lock,
+  Radio,
   RadioTower,
   Settings,
+  Shield,
+  Thermometer,
   Unlock,
   Users,
   Wifi,
@@ -32,14 +36,29 @@ type FeatureCardProps = {
   onPress?: () => void;
 };
 
+type ToggleGateProps = {
+  label: string;
+  active: boolean;
+  onToggle: () => void;
+  number: string | number; // add gate number
+};
+
 type TopActionProps = {
   icon: IconType;
   label: string;
   active?: boolean;
   onPress?: () => void;
 };
+type TopStatusProps = {
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  label: string;
+  status: string;
+};
+
 
 export default function HomeScreen() {
+  const [gate1, setGate1] = useState(true);   // First Gate active
+  const [gate2, setGate2] = useState(true);  // Second Gate inactive
   const [locked, setLocked] = useState(true);
   const router = useRouter();
 
@@ -79,8 +98,20 @@ export default function HomeScreen() {
                   <Text style={styles.metricSub}>Front Door</Text>
                 </View>
                 <View style={{ alignItems: "flex-end" }}>
-                  <Text style={styles.metricLabel}>Battery</Text>
-                  <Text style={styles.metricValue}>87%</Text>
+
+
+                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 12 }}>
+                  <TopStatus icon={Battery} label="Battery" status="87%" />
+                  <TopStatus icon={Wifi} label="WiFi" status="Online" />
+                  <TopStatus icon={Bluetooth} label="Bluetooth" status="Connected" />
+                  
+                </View>
+
+                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 10 }}>
+                  <TopStatus icon={Thermometer} label="Temp" status="27°C" />
+                  <TopStatus icon={Activity} label="Humidity" status="63%" />
+                  <TopStatus icon={Radio} label="Signal" status="Strong" />
+                </View>
                 </View>
               </View>
 
@@ -141,18 +172,19 @@ export default function HomeScreen() {
 
           {/* TOP ACTIONS (3 icons row) */}
           <View style={styles.topActionsRow}>
-            <TopAction
-              icon={Lock}
-              label="Lock"
-              active={locked}
-              onPress={() => setLocked(true)}
-            />
-            <TopAction
-              icon={Unlock}
-              label="Unlock"
-              active={!locked}
-              onPress={() => setLocked(false)}
-            />
+         <ToggleGate
+            label="First Gate"
+            active={gate1}
+            number={1}
+            onToggle={() => setGate1(!gate1)}
+          />
+
+          <ToggleGate
+            label="Second Gate"
+            active={gate2}
+            number={2}
+            onToggle={() => setGate2(!gate2)}
+          />
             <TopAction
               icon={Users}
               label="Guests"
@@ -195,7 +227,48 @@ export default function HomeScreen() {
   );
 }
 
+
+
 /* small components */
+
+
+
+function ToggleGate({ label, active, onToggle, number }: ToggleGateProps) {
+  return (
+    <TouchableOpacity style={styles.topAction} onPress={onToggle}>
+      <View
+        style={[
+          styles.topActionIconWrap,
+          active
+            ? { borderColor: "#22C55E", backgroundColor: "#16A34A25" }
+            : { borderColor: "#EF4444", backgroundColor: "#7F1D1D25" },
+        ]}
+      >
+        {/* Shield icon */}
+        <Shield size={28} color={active ? "#22C55E" : "#EF4444"} />
+
+        {/* Number overlay */}
+        <Text
+          style={[
+            styles.shieldNumber,
+            { color: active ? "#22C55E" : "#EF4444" },
+          ]}
+        >
+          {number}
+        </Text>
+      </View>
+
+      <Text
+        style={[
+          styles.topActionLabel,
+          active ? { color: "#E5E7EB" } : { color: "#EF4444" },
+        ]}
+      >
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
+}
 
 function TopAction({ icon: Icon, label, active, onPress }: TopActionProps) {
   return (
@@ -214,6 +287,23 @@ function TopAction({ icon: Icon, label, active, onPress }: TopActionProps) {
     </TouchableOpacity>
   );
 }
+
+
+function TopStatus({ icon: Icon, label, status }: TopStatusProps) {
+  return (
+    <TouchableOpacity style={styles.topStatus}>
+      <View style={styles.topStatusIconWrap}>
+        <Icon size={18} color="#9CA3AF" />
+      </View>
+      <View>
+        <Text style={styles.metricLabel}>{label}</Text>
+        <Text style={styles.metricValue}>{status}</Text>
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+
 
 function FeatureCard({
   title,
@@ -247,6 +337,32 @@ function FeatureCard({
 /* styles */
 
 const styles = StyleSheet.create({
+
+  topStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  topStatusIconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#020617",
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+
+  shieldNumber: {
+  position: "absolute",
+  fontSize: 12,
+  fontWeight: "700",
+  top: "50%",
+  left: "50%",
+  transform: [{ translateX: -4 }, { translateY: -8 }],
+},
+
   safe: {
     flex: 1,
     backgroundColor: "#020617",
