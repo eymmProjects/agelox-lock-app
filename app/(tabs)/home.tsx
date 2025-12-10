@@ -5,10 +5,14 @@ import {
   Battery,
   Bell,
   Bluetooth,
+  ChevronDown,
+  CloudRain,
   KeyRound,
+  List,
   Lock,
+  MessageCircle,
+  Plus,
   Radio,
-  RadioTower,
   Settings,
   Shield,
   Thermometer,
@@ -40,7 +44,7 @@ type ToggleGateProps = {
   label: string;
   active: boolean;
   onToggle: () => void;
-  number: string | number; // add gate number
+  number: string | number;
 };
 
 type TopActionProps = {
@@ -49,17 +53,35 @@ type TopActionProps = {
   active?: boolean;
   onPress?: () => void;
 };
+
 type TopStatusProps = {
   icon: React.ComponentType<{ size?: number; color?: string }>;
   label: string;
   status: string;
 };
 
+type Room = {
+  id: string;
+  name: string;
+};
+
+const ROOMS: Room[] = [
+  { id: "smart", name: "Smart home" },
+  { id: "bedroom", name: "Bedroom" },
+  { id: "living", name: "Living room" },
+  { id: "kitchen", name: "Kitchen" },
+];
 
 export default function HomeScreen() {
-  const [gate1, setGate1] = useState(true);   // First Gate active
-  const [gate2, setGate2] = useState(true);  // Second Gate inactive
+  const [roomMenuVisible, setRoomMenuVisible] = useState(false);
+  const [gate1, setGate1] = useState(true);
+  const [gate2, setGate2] = useState(true);
   const [locked, setLocked] = useState(true);
+  const [selectedRoom, setSelectedRoom] = useState<Room>(ROOMS[0]);
+
+  // NEW: plus-menu visibility
+  const [plusMenuVisible, setPlusMenuVisible] = useState(false);
+
   const router = useRouter();
 
   const lockStatus = locked ? "Locked" : "Unlocked";
@@ -71,18 +93,125 @@ export default function HomeScreen() {
         colors={["#020617", "#020617", "#020617"]}
         style={styles.safe}
       >
+        {/* PLUS DROPDOWN OVERLAY */}
+        {roomMenuVisible && (
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => setRoomMenuVisible(false)}
+                style={styles.menuOverlay}
+              >
+                <View style={styles.roomMenu}>
+                  {ROOMS.map((room) => (
+                    <TouchableOpacity
+                      key={room.id}
+                      style={styles.roomMenuItem}
+                      onPress={() => {
+                        setSelectedRoom(room);
+                        setRoomMenuVisible(false);
+                      }}
+                    >
+                      <Text style={styles.roomMenuText}>{room.name}</Text>
+                    </TouchableOpacity>
+                  ))}
+
+                  <View style={styles.roomDivider} />
+
+                  <TouchableOpacity style={styles.roomMenuItem}>
+                    <Text style={styles.roomMenuText}>Manage rooms</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.roomMenuItem}>
+                    <Text style={styles.roomMenuText}>All devices</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableOpacity>
+            )}
+        {plusMenuVisible && (
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setPlusMenuVisible(false)}
+            style={styles.menuOverlay}
+          >
+            <View style={styles.plusMenu}>
+              {[
+                { label: "Add device", onPress: () => {} },
+                { label: "Scan", onPress: () => {} },
+                { label: "Manual controls", onPress: () => {} },
+                { label: "Automation", onPress: () => {} },
+              ].map((item) => (
+                <TouchableOpacity
+                  key={item.label}
+                  style={styles.plusMenuItem}
+                  onPress={() => {
+                    setPlusMenuVisible(false);
+                    item.onPress();
+                  }}
+                >
+                  <Text style={styles.plusMenuText}>{item.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </TouchableOpacity>
+        )}
+
         <ScrollView
           style={{ flex: 1 }}
           contentContainerStyle={{ paddingBottom: 32 }}
         >
-          {/* Fake status bar row */}
-          <View style={styles.topRow}>
-            <Text style={styles.timeText}>4:33</Text>
-            <View style={styles.topIcons}>
-              <Wifi size={16} color="#9CA3AF" />
-              <Bluetooth size={16} color="#9CA3AF" style={{ marginLeft: 6 }} />
-              <RadioTower size={16} color="#9CA3AF" style={{ marginLeft: 6 }} />
+          {/* TOP BAR: Home name + icons */}
+          <View style={styles.homeHeaderRow}>
+            <TouchableOpacity style={styles.homeNameRow}>
+              <Text style={styles.homeNameText}>Eymm&apos;s home</Text>
+              <ChevronDown size={16} color="#E5E7EB" />
+            </TouchableOpacity>
+            <View style={styles.homeHeaderIcons}>
+              <TouchableOpacity
+                style={styles.headerIconButton}
+                onPress={() => router.push("/notifications")}
+              >
+                <MessageCircle size={18} color="#E5E7EB" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerIconButton}
+                onPress={() => setPlusMenuVisible((v) => !v)}
+              >
+                <Plus size={18} color="#E5E7EB" />
+              </TouchableOpacity>
             </View>
+          </View>
+
+          {/* ROOM TABS + menu pill */}
+          <View style={styles.roomsTabsRow}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.roomsTabsScroll}
+            >
+              {ROOMS.map((room) => {
+                const active = room.id === selectedRoom.id;
+                return (
+                  <TouchableOpacity
+                    key={room.id}
+                    onPress={() => setSelectedRoom(room)}
+                  >
+                    <Text
+                      style={[
+                        styles.roomTabText,
+                        active && styles.roomTabTextActive,
+                      ]}
+                    >
+                      {room.name}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+                  <TouchableOpacity
+                    style={styles.menuPill}
+                    onPress={() => setRoomMenuVisible(true)}
+                  >
+                    <List size={18} color="#E5E7EB" />
+                  </TouchableOpacity>
           </View>
 
           {/* HERO */}
@@ -95,23 +224,61 @@ export default function HomeScreen() {
               <View style={styles.metricsRow}>
                 <View>
                   <Text style={styles.metricMain}>{lockStatus}</Text>
-                  <Text style={styles.metricSub}>Front Door</Text>
+                  <Text style={styles.metricSub}>
+                    Front Door • {selectedRoom.name}
+                  </Text>
                 </View>
+
                 <View style={{ alignItems: "flex-end" }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 4,
+                    }}
+                  >
+                    {/* PHILIPPINES WEATHER PILL */}
+                    <View style={styles.weatherRow}>
+                      <View style={styles.weatherPill}>
+                        <CloudRain size={20} color="#E5E7EB" />
+                        <View style={{ marginLeft: 8 }}>
+                          <Text style={styles.weatherTemp}>14°</Text>
+                          <Text style={styles.weatherLocation}>Philippines</Text>
+                        </View>
+                      </View>
+                    </View>
+                    <TopStatus icon={Battery} label="Battery" status="87%" />
+                    <View style={{ width: 10 }} />
+                    <TopStatus icon={Wifi} label="WiFi" status="Online" />
+                    <View style={{ width: 10 }} />
+                    <TopStatus
+                      icon={Bluetooth}
+                      label="Bluetooth"
+                      status="Connected"
+                    />
+                  </View>
 
-
-                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 12 }}>
-                  <TopStatus icon={Battery} label="Battery" status="87%" />
-                  <TopStatus icon={Wifi} label="WiFi" status="Online" />
-                  <TopStatus icon={Bluetooth} label="Bluetooth" status="Connected" />
-                  
-                </View>
-
-                <View style={{ flexDirection: "row", justifyContent: "space-between", paddingHorizontal: 16, marginTop: 10 }}>
-                  <TopStatus icon={Thermometer} label="Temp" status="27°C" />
-                  <TopStatus icon={Activity} label="Humidity" status="63%" />
-                  <TopStatus icon={Radio} label="Signal" status="Strong" />
-                </View>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      justifyContent: "space-between",
+                      marginTop: 8,
+                    }}
+                  >
+                    <TopStatus
+                      icon={Thermometer}
+                      label="Temp"
+                      status="27°C"
+                    />
+                    <View style={{ width: 10 }} />
+                    <TopStatus
+                      icon={Activity}
+                      label="Humidity"
+                      status="63%"
+                    />
+                    <View style={{ width: 10 }} />
+                    <TopStatus icon={Radio} label="Signal" status="Strong" />
+                  </View>
                 </View>
               </View>
 
@@ -133,10 +300,7 @@ export default function HomeScreen() {
                 <View style={styles.heroActionCol}>
                   <TouchableOpacity
                     onPress={() => setLocked(!locked)}
-                    style={[
-                      styles.lockCircle,
-                      { backgroundColor: lockColor },
-                    ]}
+                    style={[styles.lockCircle, { backgroundColor: lockColor }]}
                   >
                     {locked ? (
                       <Unlock size={26} color="#020617" />
@@ -163,28 +327,29 @@ export default function HomeScreen() {
                     {locked ? "Door secure • Auto-lock 30s" : "Door open"}
                   </Text>
                 </View>
-                <TouchableOpacity onPress={() => router.push("/(tabs)/devices")}>
+                <TouchableOpacity
+                  onPress={() => router.push("/(tabs)/devices")}
+                >
                   <Text style={styles.heroLink}>Device details ›</Text>
                 </TouchableOpacity>
               </View>
             </LinearGradient>
           </View>
 
-          {/* TOP ACTIONS (3 icons row) */}
+          {/* GATE TOGGLES + Guests */}
           <View style={styles.topActionsRow}>
-         <ToggleGate
-            label="First Gate"
-            active={gate1}
-            number={1}
-            onToggle={() => setGate1(!gate1)}
-          />
-
-          <ToggleGate
-            label="Second Gate"
-            active={gate2}
-            number={2}
-            onToggle={() => setGate2(!gate2)}
-          />
+            <ToggleGate
+              label="First Gate"
+              active={gate1}
+              number={1}
+              onToggle={() => setGate1(!gate1)}
+            />
+            <ToggleGate
+              label="Second Gate"
+              active={gate2}
+              number={2}
+              onToggle={() => setGate2(!gate2)}
+            />
             <TopAction
               icon={Users}
               label="Guests"
@@ -227,11 +392,7 @@ export default function HomeScreen() {
   );
 }
 
-
-
 /* small components */
-
-
 
 function ToggleGate({ label, active, onToggle, number }: ToggleGateProps) {
   return (
@@ -244,10 +405,7 @@ function ToggleGate({ label, active, onToggle, number }: ToggleGateProps) {
             : { borderColor: "#EF4444", backgroundColor: "#7F1D1D25" },
         ]}
       >
-        {/* Shield icon */}
         <Shield size={28} color={active ? "#22C55E" : "#EF4444"} />
-
-        {/* Number overlay */}
         <Text
           style={[
             styles.shieldNumber,
@@ -276,7 +434,10 @@ function TopAction({ icon: Icon, label, active, onPress }: TopActionProps) {
       <View
         style={[
           styles.topActionIconWrap,
-          active && { borderColor: "#22C55E", backgroundColor: "#16A34A25" },
+          active && {
+            borderColor: "#22C55E",
+            backgroundColor: "#16A34A25",
+          },
         ]}
       >
         <Icon size={22} color={active ? "#22C55E" : "#E5E7EB"} />
@@ -288,10 +449,9 @@ function TopAction({ icon: Icon, label, active, onPress }: TopActionProps) {
   );
 }
 
-
 function TopStatus({ icon: Icon, label, status }: TopStatusProps) {
   return (
-    <TouchableOpacity style={styles.topStatus}>
+    <View style={styles.topStatus}>
       <View style={styles.topStatusIconWrap}>
         <Icon size={18} color="#9CA3AF" />
       </View>
@@ -299,11 +459,9 @@ function TopStatus({ icon: Icon, label, status }: TopStatusProps) {
         <Text style={styles.metricLabel}>{label}</Text>
         <Text style={styles.metricValue}>{status}</Text>
       </View>
-    </TouchableOpacity>
+    </View>
   );
 }
-
-
 
 function FeatureCard({
   title,
@@ -337,54 +495,128 @@ function FeatureCard({
 /* styles */
 
 const styles = StyleSheet.create({
-
-  topStatus: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
-  topStatusIconWrap: {
-    width: 32,
-    height: 32,
-    borderRadius: 999,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#020617",
-    borderWidth: 1,
-    borderColor: "#1F2937",
-  },
-
-  shieldNumber: {
-  position: "absolute",
-  fontSize: 12,
-  fontWeight: "700",
-  top: "50%",
-  left: "50%",
-  transform: [{ translateX: -4 }, { translateY: -8 }],
-},
-
   safe: {
     flex: 1,
     backgroundColor: "#020617",
   },
-  topRow: {
+
+  roomMenu: {
+  position: "absolute",
+  top: 110, // adjust if needed to match your design
+  right: 16,
+  backgroundColor: "#111827",
+  borderRadius: 18,
+  paddingVertical: 8,
+  width: 200,
+  zIndex: 30,
+  elevation: 12,
+  shadowColor: "#000",
+  shadowOpacity: 0.4,
+  shadowRadius: 10,
+  shadowOffset: { width: 0, height: 6 },
+},
+roomMenuItem: {
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+},
+roomMenuText: {
+  color: "#E5E7EB",
+  fontSize: 15,
+  fontWeight: "500",
+},
+roomDivider: {
+  height: 1,
+  backgroundColor: "#1F2937",
+  marginVertical: 6,
+},
+
+
+  homeHeaderRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 18,
-    paddingTop: 6,
-    marginBottom: 4,
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 10,
   },
-  timeText: {
-    color: "#E5E7EB",
-    fontSize: 12,
-  },
-  topIcons: {
+  homeNameRow: {
     flexDirection: "row",
     alignItems: "center",
   },
+  homeNameText: {
+    color: "#F9FAFB",
+    fontSize: 18,
+    fontWeight: "600",
+    marginRight: 4,
+  },
+  homeHeaderIcons: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  headerIconButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#374151",
+    justifyContent: "center",
+    alignItems: "center",
+    marginLeft: 8,
+  },
+
+  roomsTabsRow: {
+    marginTop: 6,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  roomsTabsScroll: {
+    paddingRight: 8,
+  },
+  roomTabText: {
+    marginRight: 16,
+    fontSize: 16,
+    color: "#6B7280",
+  },
+  roomTabTextActive: {
+    color: "#F9FAFB",
+    fontWeight: "600",
+  },
+  menuPill: {
+    width: 38,
+    height: 24,
+    borderRadius: 999,
+    backgroundColor: "#111827",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  weatherRow: {
+    paddingHorizontal: 16,
+    marginTop: 10,
+  },
+  weatherPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#111827",
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    alignSelf: "flex-start",
+  },
+  weatherTemp: {
+    color: "#F9FAFB",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  weatherLocation: {
+    color: "#E5E7EB",
+    fontSize: 12,
+  },
+
   heroWrapper: {
     paddingHorizontal: 16,
-    marginTop: 4,
+    marginTop: 10,
   },
   heroCard: {
     borderRadius: 24,
@@ -417,6 +649,23 @@ const styles = StyleSheet.create({
     color: "#E5E7EB",
     fontWeight: "600",
   },
+
+  topStatus: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  topStatusIconWrap: {
+    width: 28,
+    height: 28,
+    borderRadius: 999,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#020617",
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+
   heroMiddleRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -497,6 +746,15 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
   },
 
+  shieldNumber: {
+    position: "absolute",
+    fontSize: 12,
+    fontWeight: "700",
+    top: "50%",
+    left: "50%",
+    transform: [{ translateX: -4 }, { translateY: -8 }],
+  },
+
   grid: {
     marginTop: 18,
     paddingHorizontal: 16,
@@ -536,5 +794,35 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+ menuOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 20,
+  },
+  plusMenu: {
+    position: "absolute",
+    top: 60, // adjust if needed to match header height
+    right: 16,
+    backgroundColor: "#111827",
+    borderRadius: 18,
+    paddingVertical: 8,
+    width: 190,
+    elevation: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  plusMenuItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  plusMenuText: {
+    color: "#E5E7EB",
+    fontSize: 14,
   },
 });
