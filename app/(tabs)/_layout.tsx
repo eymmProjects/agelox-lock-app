@@ -1,5 +1,5 @@
-// app/(tabs)/_layout.tsx
-import { Tabs } from "expo-router";
+  // app/(tabs)/_layout.tsx
+  import { Tabs } from "expo-router";
 import { Cpu, Home, ShoppingBag, User } from "lucide-react-native";
 import React from "react";
 import { View } from "react-native";
