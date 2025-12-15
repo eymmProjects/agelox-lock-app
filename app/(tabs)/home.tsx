@@ -86,6 +86,7 @@ export default function HomeScreen() {
   const [locked, setLocked] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<Room>(ROOMS[0]);
   const [confirmDisableVisible, setConfirmDisableVisible] = useState(false);
+  const [homeMenuVisible, setHomeMenuVisible] = useState(false);
 
 
   const requestToggleSecondGate = () => {
@@ -187,10 +188,13 @@ export default function HomeScreen() {
         >
           {/* TOP BAR: Home name + icons */}
           <View style={styles.homeHeaderRow}>
-            <TouchableOpacity style={styles.homeNameRow}>
-              <Text style={styles.homeNameText}>Alex&apos;s home</Text>
-              <ChevronDown size={16} color="#E5E7EB" />
-            </TouchableOpacity>
+         <TouchableOpacity
+            style={styles.homeNameRow}
+            onPress={() => setHomeMenuVisible(true)}
+          >
+            <Text style={styles.homeNameText}>Alex’s Home</Text>
+            <ChevronDown size={16} color="#E5E7EB" />
+          </TouchableOpacity>
             <View style={styles.homeHeaderIcons}>
               <TouchableOpacity
                 style={styles.headerIconButton}
@@ -488,6 +492,39 @@ export default function HomeScreen() {
   </View>
 </Modal>
 
+{homeMenuVisible && (
+  <TouchableOpacity
+    activeOpacity={1}
+    onPress={() => setHomeMenuVisible(false)}
+    style={styles.menuOverlay}
+  >
+    <View style={styles.homeMenu}>
+      {/* Alex’s Home */}
+      <TouchableOpacity
+        style={styles.homeMenuItem}
+        onPress={() => {
+          setHomeMenuVisible(false);
+          router.replace("/(tabs)/home");
+        }}
+      >
+        <Text style={styles.homeMenuTextActive}>Alex’s Home</Text>
+      </TouchableOpacity>
+
+      {/* Alex’s Smartwatch */}
+      <TouchableOpacity
+        style={styles.homeMenuItem}
+        onPress={() => {
+          setHomeMenuVisible(false);
+          router.replace("/smartwatch");
+        }}
+      >
+        <Text style={styles.homeMenuText}>Alex’s Smartwatch</Text>
+      </TouchableOpacity>
+    </View>
+  </TouchableOpacity>
+)}
+
+
     </SafeAreaView>
 
     
@@ -620,6 +657,50 @@ function FeatureCard({
 /* styles */
 
 const styles = StyleSheet.create({
+
+  // start alex top cheron
+  menuOverlay: {
+  position: "absolute",
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+  zIndex: 50,
+},
+
+homeMenu: {
+  position: "absolute",
+  top: 56,
+  left: 16,
+  backgroundColor: "#0B1220",
+  borderRadius: 18,
+  paddingVertical: 8,
+  width: 220,
+  borderWidth: 1,
+  borderColor: "#1F2937",
+  shadowColor: "#000",
+  shadowOpacity: 0.4,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 8 },
+},
+
+homeMenuItem: {
+  paddingHorizontal: 16,
+  paddingVertical: 12,
+},
+
+homeMenuText: {
+  color: "#E5E7EB",
+  fontSize: 14,
+},
+
+homeMenuTextActive: {
+  color: "#22D3EE",
+  fontSize: 14,
+  fontWeight: "700",
+},
+
+  //end alex top cheron
 
 statusHeaderRow: {
   flexDirection: "row",
@@ -1112,14 +1193,14 @@ roomDivider: {
     justifyContent: "center",
     alignItems: "center",
   },
- menuOverlay: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 20,
-  },
+//  menuOverlay: {
+//     position: "absolute",
+//     top: 0,
+//     left: 0,
+//     right: 0,
+//     bottom: 0,
+//     zIndex: 20,
+//   },
   plusMenu: {
     position: "absolute",
     top: 60, // adjust if needed to match header height
