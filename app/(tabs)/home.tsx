@@ -20,13 +20,16 @@ import {
 } from "lucide-react-native";
 import React, { useState } from "react";
 import {
+  Modal,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
+
+import { BlurView } from "expo-blur";
 
 type IconType = React.ComponentType<{ size?: number; color?: string }>;
 
@@ -42,6 +45,7 @@ type ToggleGateProps = {
   label: string;
   active: boolean;
   onToggle: () => void;
+  number?: number; // optional gate number
 };
 
 type TopActionProps = {
@@ -66,7 +70,7 @@ type CameraTab ={id:"front" | "back"; name:string}
 
 const CAMERA_TABS:CameraTab[]=[
   {id: "front", name:"Front Door"},
-  {id: "back", name:"Back door"}
+  {id: "back", name:"Back door"},
 ]
 
 const ROOMS: Room[] = [
@@ -81,7 +85,27 @@ export default function HomeScreen() {
   const [gate2, setGate2] = useState(true);
   const [locked, setLocked] = useState(true);
   const [selectedRoom, setSelectedRoom] = useState<Room>(ROOMS[0]);
+  const [confirmDisableVisible, setConfirmDisableVisible] = useState(false);
 
+
+  const requestToggleSecondGate = () => {
+    if (gate2) {
+      // currently enabled -> user is trying to disable => show confirm modal
+      setConfirmDisableVisible(true);
+    } else {
+      // enable directly
+      setGate2(true);
+    }
+  };
+
+  const confirmDisableSecondGate = () => {
+    setGate2(false);
+    setConfirmDisableVisible(false);
+  };
+
+  const cancelDisableSecondGate = () => {
+    setConfirmDisableVisible(false);
+  };
   // NEW: plus-menu visibility
   const [plusMenuVisible, setPlusMenuVisible] = useState(false);
 
@@ -226,7 +250,7 @@ export default function HomeScreen() {
            
 <View style={styles.statusPhoneContainer}>
   {/* Header area */}
-  <View style={[styles.metricsRow, { marginTop: 10 }]}>
+  <View style={[styles.metricsRow]}>
     <View style={{ flexDirection: "column" }}>
       {/* Tabs */}
       <View style={styles.cameraTabsRow}>
@@ -252,29 +276,30 @@ export default function HomeScreen() {
       </View>
 
       {/* Lock status row */}
-      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}>
-        <View style={styles.smallIconWrap}>
-          {locked ? (
-            <Lock size={18} color="#E5E7EB" />
-          ) : (
-            <Unlock size={18} color={lockColor} />
-          )}
-        </View>
-        <Text style={[styles.metricMain, { marginLeft: 10 }]}>{lockStatus}</Text>
-          {cameraTab.id==="front"? (
-            <Text style={{ color: "#E5E7EB" , marginLeft:5, marginTop:10}}>
-              Front Door
+        <View style={styles.statusHeaderRow}>
+          {/* LEFT */}
+          <View style={styles.statusLeft}>
+            <View style={styles.smallIconWrap}>
+              {locked ? (
+                <Lock size={18} color="#E5E7EB" />
+              ) : (
+                <Unlock size={18} color={lockColor} />
+              )}
+            </View>
+
+            <View style={{ marginLeft: 10 }}>
+              <Text style={styles.metricMain}>{lockStatus}</Text>
+              <Text style={styles.metricSub}>
+                {cameraTab.id === "front" ? "Front Door" : "Back Door"}
               </Text>
-          ) : (
-            <Text style={{ color: "#E5E7EB" , marginLeft:5, marginTop:10}}>
-              Back Door
-            </Text> 
+            </View>
+          </View>
 
-          )}
-
-
-
-      </View>
+          {/* RIGHT */}
+          <View style={styles.weatherRight}>
+            <TopWeather temp="14°" location="California" compact />
+          </View>
+        </View>
     </View>
   </View>
 
@@ -284,7 +309,6 @@ export default function HomeScreen() {
       <View style={styles.statusGrid}>
         {/* <Text style={{ color: "#E5E7EB" }}>Front Door</Text> */}
 
-        <TopWeather temp="14°" location="California" />
         <TopStatus icon={Battery} label="Battery" status="87%" />
         <TopStatus icon={Wifi} label="WiFi" status="Online" />
         <TopStatus icon={Bluetooth} label="Bluetooth" status="Connected" />
@@ -297,7 +321,6 @@ export default function HomeScreen() {
       <View style={styles.statusGrid}>
         {/* <Text style={{ color: "#E5E7EB" }}>Back Door Camera Feed</Text> */}
 
-        <TopWeather temp="14°" location="California" />
         <TopStatus icon={Battery} label="Battery" status="87%" />
         <TopStatus icon={Wifi} label="WiFi" status="Online" />
         <TopStatus icon={Bluetooth} label="Bluetooth" status="Connected" />
@@ -352,10 +375,11 @@ export default function HomeScreen() {
                   </Text>
 
 
-                    <ToggleGate
+                   <ToggleGate
                       label={gate2 ? "Tap to Disable" : "Tap to Enable"}
                       active={gate2}
-                      onToggle={() => setGate2((v) => !v)}
+                      // number={2}
+                      onToggle={requestToggleSecondGate}
                     />
                   </View>
 
@@ -430,26 +454,81 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
       </LinearGradient>
+
+      
+  <Modal
+  visible={confirmDisableVisible}
+  transparent
+  animationType="fade"
+  onRequestClose={cancelDisableSecondGate}
+>
+  {/* dim + blur background */}
+  <View style={styles.modalOverlay}>
+    <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFillObject} />
+
+    {/* dialog */}
+    <View style={styles.dialogCard}>
+      <Text style={styles.dialogTitle}>Disable Second Gate?</Text>
+      <Text style={styles.dialogMessage}>
+        Disabling this gate will turn off face recognition, biometric verification,
+        and other advanced security protections. This may reduce overall system
+        security. Do you want to continue?
+      </Text>
+
+      <View style={styles.dialogButtonsRow}>
+        <TouchableOpacity style={styles.dialogBtnGhost} onPress={cancelDisableSecondGate}>
+          <Text style={styles.dialogBtnGhostText}>Cancel</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.dialogBtnDanger} onPress={confirmDisableSecondGate}>
+          <Text style={styles.dialogBtnDangerText}>Disable</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  </View>
+</Modal>
+
     </SafeAreaView>
+
+    
   );
 }
 
 /* small components */
-function ToggleGate({ label, active, onToggle }: ToggleGateProps) {
+function ToggleGate({ label, active, onToggle, number }: ToggleGateProps) {
   return (
-    <TouchableOpacity style={styles.topAction} onPress={onToggle}>
+    <TouchableOpacity
+      style={styles.topAction}
+      onPress={onToggle}
+      activeOpacity={0.8}
+    >
       <View
         style={[
           styles.topActionIconWrap,
           active
-            ? { borderColor: "#22C55E", backgroundColor: "#16A34A25" }
-            : { borderColor: "#EF4444", backgroundColor: "#7F1D1D25" },
+            ? {
+                borderColor: "#22C55E",
+                backgroundColor: "#16A34A25",
+              }
+            : {
+                borderColor: "#EF4444",
+                backgroundColor: "#7F1D1D25",
+              },
         ]}
       >
         <Shield size={28} color={active ? "#22C55E" : "#EF4444"} />
 
-        {/* number inside shield */}
-       
+        {/* Gate number inside shield */}
+        {number !== undefined && (
+          <Text
+            style={[
+              styles.shieldNumber,
+              { color: active ? "#22C55E" : "#EF4444" },
+            ]}
+          >
+            {number}
+          </Text>
+        )}
       </View>
 
       <Text
@@ -464,37 +543,27 @@ function ToggleGate({ label, active, onToggle }: ToggleGateProps) {
   );
 }
 
-function TopAction({ icon: Icon, label, active, onPress }: TopActionProps) {
-  return (
-    <TouchableOpacity style={styles.topAction} onPress={onPress}>
-      <View
-        style={[
-          styles.topActionIconWrap,
-          active && {
-            borderColor: "#22C55E",
-            backgroundColor: "#16A34A25",
-          },
-        ]}
-      >
-        <Icon size={22} color={active ? "#22C55E" : "#E5E7EB"} />
-      </View>
-      <Text style={[styles.topActionLabel, active && { color: "#E5E7EB" }]}>
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
 
-function TopWeather({ temp, location }: { temp: string; location: string }) {
+
+function TopWeather({
+  temp,
+  location,
+  compact,
+}: {
+  temp: string;
+  location: string;
+  compact?: boolean;
+}) {
   return (
-    <View style={styles.topStatus}>
+    <View style={[styles.topStatus, compact && { width: "auto" }]}>
       <View style={styles.topStatusIconWrap}>
         <CloudRain size={18} color="#9CA3AF" />
       </View>
       <View>
         <Text style={styles.metricLabel}>Weather</Text>
         <Text style={styles.metricValue}>
-          {temp} • {location}
+          {temp}
+           {/* • {location} */}
         </Text>
       </View>
     </View>
@@ -542,12 +611,108 @@ function FeatureCard({
         {subtitle}
       </Text>
     </TouchableOpacity>
+
+    
   );
+
 }
 
 /* styles */
 
 const styles = StyleSheet.create({
+
+statusHeaderRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  width: "100%",
+  alignSelf: "stretch",
+  marginTop: 8,
+},
+
+statusLeft: {
+  flexDirection: "row",
+  alignItems: "center",
+  flex: 1,          // ✅ take remaining space so right goes to end
+  minWidth: 0,      // ✅ prevents text from pushing weather off-screen
+},
+
+weatherRight: {
+  flexShrink: 0,    // ✅ never shrink
+  alignItems: "flex-end",
+},
+
+// end top lock weather icon
+
+  // MODAL
+
+  modalOverlay: {
+  flex: 1,
+  backgroundColor: "rgba(0,0,0,0.35)",
+  justifyContent: "center",
+  alignItems: "center",
+  paddingHorizontal: 18,
+},
+
+dialogCard: {
+  width: "100%",
+  maxWidth: 420,
+  borderRadius: 22,
+  padding: 16,
+  backgroundColor: "#0B1220",
+  borderWidth: 1,
+  borderColor: "#1F2937",
+},
+
+dialogTitle: {
+  color: "#F9FAFB",
+  fontSize: 18,
+  fontWeight: "700",
+  marginBottom: 8,
+},
+
+dialogMessage: {
+  color: "#9CA3AF",
+  fontSize: 13,
+  lineHeight: 18,
+},
+
+dialogButtonsRow: {
+  flexDirection: "row",
+  justifyContent: "flex-end",
+  gap: 10,
+  marginTop: 14,
+},
+
+dialogBtnGhost: {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 14,
+  borderWidth: 1,
+  borderColor: "#374151",
+},
+
+dialogBtnGhostText: {
+  color: "#E5E7EB",
+  fontSize: 13,
+  fontWeight: "600",
+},
+
+dialogBtnDanger: {
+  paddingVertical: 10,
+  paddingHorizontal: 14,
+  borderRadius: 14,
+  backgroundColor: "#EF4444",
+},
+
+dialogBtnDangerText: {
+  color: "#0B1220",
+  fontSize: 13,
+  fontWeight: "800",
+},
+
+  //END MODAL
+
   safe: {
     flex: 1,
     backgroundColor: "#020617",
@@ -568,7 +733,7 @@ const styles = StyleSheet.create({
   cameraTabsRow: {
   flexDirection: "row",
   gap: 10,
-  paddingHorizontal: 16,
+  // paddingHorizontal: 16,
   marginTop: 12,
   marginBottom: 12,
 },
@@ -769,11 +934,12 @@ roomDivider: {
     borderWidth: 1,
     borderColor: "#1F2937",
   },
-  metricsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 10,
-  },
+ metricsRow: {
+  width: "100%",
+  alignSelf: "stretch",
+  flexDirection: "column", // ✅ IMPORTANT (was "row")
+  marginBottom: 10,
+},
   metricMain: {
     fontSize: 26,
     fontWeight: "700",
@@ -976,4 +1142,6 @@ roomDivider: {
     color: "#E5E7EB",
     fontSize: 14,
   },
+
+  
 });
