@@ -1,24 +1,30 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { useRouter } from "expo-router";
 import {
   Activity,
   BedDouble,
+  ChevronDown,
   CloudSun,
   Droplets,
   Footprints,
   Heart,
   TrendingUp,
-  Wind
+  Wind,
 } from "lucide-react-native";
-import React from "react";
+import React, { useState } from "react";
 import {
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
-  View
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 export default function SmartwatchScreen() {
+  const router = useRouter();
+  const [homeMenuVisible, setHomeMenuVisible] = useState(false);
+
   // demo values (replace with real device data later)
   const today = "2025/12/15, Monday";
   const temp = "30°C";
@@ -42,8 +48,54 @@ export default function SmartwatchScreen() {
   return (
     <SafeAreaView style={styles.safe}>
       <LinearGradient colors={["#020617", "#020617"]} style={styles.safe}>
+        {/* TOP DROPDOWN HEADER (Alex's Watch) */}
+        <View style={styles.homeHeaderRow}>
+          <TouchableOpacity
+            style={styles.homeNameRow}
+            onPress={() => setHomeMenuVisible((v) => !v)}
+            activeOpacity={0.8}
+          >
+            <Text style={styles.homeNameText}>Alex’s Watch</Text>
+            <ChevronDown size={16} color="#E5E7EB" />
+          </TouchableOpacity>
+
+          {/* right side is optional - keep empty for now */}
+          <View />
+        </View>
+
+        {/* DROPDOWN MENU */}
+        {homeMenuVisible && (
+          <TouchableOpacity
+            style={styles.menuOverlay}
+            activeOpacity={1}
+            onPress={() => setHomeMenuVisible(false)}
+          >
+            <View style={styles.homeMenu}>
+              <TouchableOpacity
+                style={styles.homeMenuItem}
+                onPress={() => {
+                  setHomeMenuVisible(false);
+                  router.replace("/(tabs)/home");
+                }}
+              >
+                <Text style={styles.homeMenuText}>Alex’s Home</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.homeMenuItem}
+                onPress={() => {
+                  setHomeMenuVisible(false);
+                  router.replace("/smartwatch");
+                }}
+              >
+                <Text style={styles.homeMenuTextActive}>Alex’s Watch</Text>
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        )}
+
         <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
-          {/* TOP HEADER */}
+          {/* HEADER */}
           <View style={sw.headerWrap}>
             <View>
               <Text style={sw.dateText}>{today}</Text>
@@ -58,10 +110,8 @@ export default function SmartwatchScreen() {
 
           {/* TIMELINE LIST */}
           <View style={sw.timelineWrap}>
-            {/* vertical line */}
             <View style={sw.timelineLine} />
 
-            {/* STEPS CARD */}
             <MetricCard
               accent="#22C55E"
               icon={Footprints}
@@ -77,7 +127,6 @@ export default function SmartwatchScreen() {
                   <KpiRow label="Steps" value={`${steps}`} />
                 </View>
 
-                {/* simple rings placeholder */}
                 <View style={sw.ringsWrap}>
                   <View style={[sw.ring, { borderColor: "#22C55E30" }]} />
                   <View style={[sw.ringInner, { borderColor: "#22D3EE30" }]} />
@@ -86,7 +135,6 @@ export default function SmartwatchScreen() {
               </View>
             </MetricCard>
 
-            {/* SLEEP CARD */}
             <MetricCard
               accent="#A855F7"
               icon={BedDouble}
@@ -103,7 +151,6 @@ export default function SmartwatchScreen() {
               <Text style={sw.noDataText}>No data</Text>
             </MetricCard>
 
-            {/* HEART RATE CARD */}
             <MetricCard
               accent="#EF4444"
               icon={Heart}
@@ -117,7 +164,6 @@ export default function SmartwatchScreen() {
                 <HrStat label="Maximum" value={`${hrMax} BPM`} />
               </View>
 
-              {/* zone bar */}
               <View style={sw.zoneBar}>
                 <View style={[sw.zoneSeg, { backgroundColor: "#FDE68A" }]} />
                 <View style={[sw.zoneSeg, { backgroundColor: "#F59E0B" }]} />
@@ -133,7 +179,6 @@ export default function SmartwatchScreen() {
               </View>
             </MetricCard>
 
-            {/* SpO2 */}
             <MetricCard
               accent="#22D3EE"
               icon={Droplets}
@@ -141,10 +186,13 @@ export default function SmartwatchScreen() {
               right={`${spo2}%`}
               sub="Last measured today"
             >
-              <MiniKpi label="Blood oxygen saturation" value={`${spo2}%`} hint="Normal: 95–100%" />
+              <MiniKpi
+                label="Blood oxygen saturation"
+                value={`${spo2}%`}
+                hint="Normal: 95–100%"
+              />
             </MetricCard>
 
-            {/* HRV */}
             <MetricCard
               accent="#F59E0B"
               icon={Activity}
@@ -152,10 +200,13 @@ export default function SmartwatchScreen() {
               right={`${hrv} ms`}
               sub="Last measured today"
             >
-              <MiniKpi label="Heart rate variability" value={`${hrv} ms`} hint="Higher often indicates better recovery" />
+              <MiniKpi
+                label="Heart rate variability"
+                value={`${hrv} ms`}
+                hint="Higher often indicates better recovery"
+              />
             </MetricCard>
 
-            {/* Respiratory Rate */}
             <MetricCard
               accent="#60A5FA"
               icon={Wind}
@@ -163,10 +214,13 @@ export default function SmartwatchScreen() {
               right={`${resp} /min`}
               sub="Last measured today"
             >
-              <MiniKpi label="Breaths per minute" value={`${resp}`} hint="Typical resting: ~12–20 /min" />
+              <MiniKpi
+                label="Breaths per minute"
+                value={`${resp}`}
+                hint="Typical resting: ~12–20 /min"
+              />
             </MetricCard>
 
-            {/* MAI Score */}
             <MetricCard
               accent="#22C55E"
               icon={TrendingUp}
@@ -174,7 +228,11 @@ export default function SmartwatchScreen() {
               right={`${mai}/100`}
               sub="Daily wellness index"
             >
-              <MiniKpi label="Overall readiness" value={`${mai}/100`} hint="Based on activity + sleep + vitals" />
+              <MiniKpi
+                label="Overall readiness"
+                value={`${mai}/100`}
+                hint="Based on activity + sleep + vitals"
+              />
               <View style={sw.progressTrack}>
                 <View style={[sw.progressFill, { width: `${mai}%` }]} />
               </View>
@@ -186,7 +244,7 @@ export default function SmartwatchScreen() {
   );
 }
 
-/* ---------- small building blocks ---------- */
+/* ---------- blocks ---------- */
 
 function MetricCard({
   accent,
@@ -196,15 +254,7 @@ function MetricCard({
   sub,
   footerRight,
   children,
-}: {
-  accent: string;
-  icon: any;
-  title: string;
-  right: string;
-  sub?: string;
-  footerRight?: string;
-  children?: React.ReactNode;
-}) {
+}: any) {
   return (
     <View style={sw.itemRow}>
       <View style={[sw.bubble, { backgroundColor: `${accent}20` }]}>
@@ -230,7 +280,7 @@ function MetricCard({
   );
 }
 
-function KpiRow({ label, value }: { label: string; value: string }) {
+function KpiRow({ label, value }: any) {
   return (
     <View style={sw.kpiRow}>
       <Text style={sw.kpiLabel}>{value}</Text>
@@ -239,7 +289,7 @@ function KpiRow({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HrStat({ label, value }: { label: string; value: string }) {
+function HrStat({ label, value }: any) {
   return (
     <View style={{ alignItems: "center", flex: 1 }}>
       <Text style={sw.hrStatLabel}>{label}</Text>
@@ -248,7 +298,7 @@ function HrStat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function LegendDot({ color, label }: { color: string; label: string }) {
+function LegendDot({ color, label }: any) {
   return (
     <View style={sw.legendItem}>
       <View style={[sw.legendDot, { backgroundColor: color }]} />
@@ -257,7 +307,7 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function MiniKpi({ label, value, hint }: { label: string; value: string; hint?: string }) {
+function MiniKpi({ label, value, hint }: any) {
   return (
     <View>
       <Text style={sw.miniLabel}>{label}</Text>
@@ -271,19 +321,68 @@ function MiniKpi({ label, value, hint }: { label: string; value: string; hint?: 
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: "#020617" },
+
+  // dropdown styles (same style language as your home)
+  menuOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 50,
+  },
+  homeMenu: {
+    position: "absolute",
+    top: 56,
+    left: 16,
+    backgroundColor: "#0B1220",
+    borderRadius: 18,
+    paddingVertical: 8,
+    width: 220,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+    shadowColor: "#000",
+    shadowOpacity: 0.4,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 8 },
+  },
+  homeMenuItem: { paddingHorizontal: 16, paddingVertical: 12 },
+  homeMenuText: { color: "#E5E7EB", fontSize: 14 },
+  homeMenuTextActive: { color: "#22D3EE", fontSize: 14, fontWeight: "700" },
+
+  homeHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    zIndex: 60,
+  },
+  homeNameRow: { flexDirection: "row", alignItems: "center" },
+  homeNameText: {
+    color: "#F9FAFB",
+    fontSize: 18,
+    fontWeight: "600",
+    marginRight: 6,
+  },
 });
 
 const sw = StyleSheet.create({
   headerWrap: {
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingTop: 10,
     paddingBottom: 6,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
   dateText: { color: "#9CA3AF", fontSize: 12 },
-  todayTitle: { color: "#F9FAFB", fontSize: 34, fontWeight: "700", marginTop: 6 },
+  todayTitle: {
+    color: "#F9FAFB",
+    fontSize: 34,
+    fontWeight: "700",
+    marginTop: 6,
+  },
   weatherTop: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 18 },
   tempText: { color: "#E5E7EB", fontSize: 14, fontWeight: "600" },
 
@@ -321,7 +420,11 @@ const sw = StyleSheet.create({
     padding: 14,
   },
 
-  cardHeader: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
   cardTitle: { color: "#E5E7EB", fontSize: 16, fontWeight: "700" },
   cardSub: { color: "#9CA3AF", fontSize: 11, marginTop: 2 },
   cardRight: { color: "#E5E7EB", fontSize: 16, fontWeight: "800" },
@@ -341,7 +444,6 @@ const sw = StyleSheet.create({
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 999 },
   legendText: { color: "#9CA3AF", fontSize: 12 },
-
   noDataText: { textAlign: "center", color: "#9CA3AF", marginTop: 12, fontSize: 12 },
 
   hrStatsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, gap: 8 },
