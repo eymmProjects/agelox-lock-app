@@ -630,54 +630,6 @@ const toggleFeatures = () => {
 }
 
 /* small components */
-function ToggleGate({ label, active, onToggle, number }: ToggleGateProps) {
-  return (
-    <TouchableOpacity
-      style={styles.topAction}
-      onPress={onToggle}
-      activeOpacity={0.8}
-    >
-      <View
-        style={[
-          styles.topActionIconWrap,
-          active
-            ? {
-                borderColor: "#22C55E",
-                backgroundColor: "#16A34A25",
-              }
-            : {
-                borderColor: "#EF4444",
-                backgroundColor: "#7F1D1D25",
-              },
-        ]}
-      >
-        <Shield size={28} color={active ? "#22C55E" : "#EF4444"} />
-
-        {/* Gate number inside shield */}
-        {number !== undefined && (
-          <Text
-            style={[
-              styles.shieldNumber,
-              { color: active ? "#22C55E" : "#EF4444" },
-            ]}
-          >
-            {number}
-          </Text>
-        )}
-      </View>
-
-      <Text
-        style={[
-          styles.topActionLabel,
-          active ? { color: "#E5E7EB" } : { color: "#EF4444" },
-        ]}
-      >
-        {label}
-      </Text>
-    </TouchableOpacity>
-  );
-}
-
 
 
 
