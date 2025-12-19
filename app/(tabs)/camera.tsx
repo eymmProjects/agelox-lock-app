@@ -17,8 +17,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider";
-
 type VisionMode = "none" | "single" | "dual" | "triple";
 type CamId = "front" | "down" | "up";
 
@@ -40,7 +40,7 @@ export default function CameraScreen() {
   const { theme } = useTheme();
   // You can later load this from your lock device capability (API/BLE/Wi-Fi)
   const [visionMode, setVisionMode] = useState<VisionMode>("single");
-
+  const insets = useSafeAreaInsets();
   const cameraTabs: CamTab[] = useMemo(() => {
     const front: CamTab = {
       id: "front",
@@ -87,6 +87,8 @@ export default function CameraScreen() {
 
   return (
 <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+  <View style={[styles.container, { paddingTop: insets.top }]}>
+  
   <LinearGradient colors={[theme.bg, theme.bg]} style={[styles.safe, { backgroundColor: theme.bg }]}>
 
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
@@ -213,6 +215,7 @@ export default function CameraScreen() {
           </View>
         </ScrollView>
       </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -420,5 +423,10 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: "#E5E7EB",
     marginTop: 6,
+  },
+  container: {
+    paddingVertical: 5,
+    flex: 1,
+    paddingHorizontal: 0,
   },
 });

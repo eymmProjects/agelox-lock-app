@@ -1,3 +1,5 @@
+// import { StatusRow } from "@/components/StatusRow";
+import { BlurView } from "expo-blur";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
@@ -20,7 +22,7 @@ import {
   Wifi
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import type { ColorValue } from "react-native";
+import type { ColorValue, } from "react-native";
 import {
   LayoutAnimation,
   Modal,
@@ -33,12 +35,8 @@ import {
   UIManager,
   View
 } from "react-native";
-
-
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider"; // adjust path if needed
-
-import { BlurView } from "expo-blur";
-
 type IconType = React.ComponentType<{ size?: number; color?: string }>;
 type Room = {
   id: string;
@@ -98,6 +96,8 @@ const ROOMS: Room[] = [
 
 
 export default function HomeScreen() {
+
+  const insets = useSafeAreaInsets();
   const { theme, mode, preference, setPreference } = useTheme();
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const iconColor = mode === "dark" ? "#9CA3AF" : "#475569";
@@ -159,7 +159,9 @@ const toggleFeatures = () => {
   const lockColor = locked ? "#22C55E" : "#F97316";
 
   return (
+    
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+        <View style={[styles.container, { paddingTop: insets.top }]}>
         <LinearGradient colors={[theme.bg, theme.bg]} style={styles.safe}>
         {/* PLUS DROPDOWN OVERLAY */}
         {roomMenuVisible && (
@@ -382,8 +384,13 @@ const toggleFeatures = () => {
           </View>
         </View>
 
-        {/* Content changes based on tab */}
-          <View style={styles.statusPhoneContainer}>
+{/* 
+      <ScrollView contentContainerStyle={styles.container}>
+      <StatusRow theme={theme} />
+
+      <View style={{ height: 24 }} />
+    </ScrollView> */}
+     <View style={styles.statusPhoneContainer}>
             <View style={styles.statusGrid}>
               <TopStatus theme={theme} icon={Battery} label="Battery" status="87%" />
               <TopStatus theme={theme} icon={Wifi} label="WiFi" status="Online" />
@@ -392,6 +399,10 @@ const toggleFeatures = () => {
               <TopStatus theme={theme} icon={Activity} label="Humidity" status="63%" />
             </View>
           </View>
+        {/* Content changes based on tab */}
+          {/*
+      
+           */}
 
       </View>
 
@@ -622,6 +633,7 @@ const toggleFeatures = () => {
   </TouchableOpacity>
 )}
 
+    </View>
 
     </SafeAreaView>
 
@@ -1080,7 +1092,7 @@ statusGrid: {
   flexDirection: "row",
   flexWrap: "wrap",
   justifyContent: "space-between",
-  rowGap: 12,
+  rowGap: 6,
 },
 
 
@@ -1457,5 +1469,10 @@ heroMiddleRow: {
     fontSize: 14,
   },
 
-  
+    container: {
+    paddingVertical: 5,
+        flex: 1,
+    paddingHorizontal: 0,
+  },
 });
+

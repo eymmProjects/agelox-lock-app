@@ -1,11 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
-import {
-  Activity,
-  Battery,
-  Cpu,
-  RefreshCcw,
-  Wifi,
-} from "lucide-react-native";
+import { Activity, Battery, Cpu, RefreshCcw, Wifi } from "lucide-react-native";
 import React from "react";
 import {
   SafeAreaView,
@@ -15,109 +9,166 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useTheme } from "../theme/ThemeProvider";
+
+
 
 export default function DevicesScreen() {
+  const insets = useSafeAreaInsets();
+  const { theme, mode } = useTheme();
+
+  const pageGradient =
+    mode === "dark"
+      ? (["#020617", "#020617"] as const)
+      : (["#F8FAFC", "#F8FAFC"] as const);
+
+  const iconAccent = mode === "dark" ? "#22D3EE" : theme.accent;
+  const chipBg = mode === "dark" ? "#0F172A" : "#EEF2FF";
+
   return (
-    <SafeAreaView style={styles.safe}>
-      <LinearGradient
-        colors={["#020617", "#020617"]}
-        style={styles.safe}
-      >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{ paddingBottom: 32 }}
-        >
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+      <View style={[styles.container, { paddingTop: insets.top }]}>
+
+      <LinearGradient colors={pageGradient} style={[styles.safe, { backgroundColor: theme.bg }]}>
+        <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.headerIconWrap}>
-              <Cpu size={22} color="#22D3EE" />
+            <View
+              style={[
+                styles.headerIconWrap,
+                { backgroundColor: chipBg, borderColor: theme.border },
+              ]}
+            >
+              <Cpu size={22} color={iconAccent} />
             </View>
             <View>
-              <Text style={styles.headerTitle}>Device Management</Text>
-              <Text style={styles.headerSub}>Agelox Multi-Gate v1.2</Text>
+              <Text style={[styles.headerTitle, { color: theme.text }]}>
+                Device Management
+              </Text>
+              <Text style={[styles.headerSub, { color: theme.muted }]}>
+                Agelox Multi-Gate v1.2
+              </Text>
             </View>
           </View>
 
           {/* Device status card */}
-          <View style={styles.card}>
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
             <View style={styles.cardHeader}>
-              <Text style={styles.cardTitle}>Status</Text>
-              <Activity size={18} color="#22D3EE" />
+              <Text style={[styles.cardTitle, { color: theme.text }]}>Status</Text>
+              <Activity size={18} color={iconAccent} />
             </View>
 
             <View style={styles.infoRow}>
-              <InfoTag label="Serial" value="AGX-221004B" />
-              <InfoTag label="Firmware" value="2.3.1" />
+              <InfoTag theme={theme} label="Serial" value="AGX-221004B" />
+              <InfoTag theme={theme} label="Firmware" value="2.3.1" />
             </View>
             <View style={styles.infoRow}>
-              <InfoTag label="Battery" value="87%" icon={Battery} />
-              <InfoTag label="Network" value="Wi-Fi (online)" icon={Wifi} />
+              <InfoTag theme={theme} label="Battery" value="87%" icon={Battery} />
+              <InfoTag theme={theme} label="Network" value="Wi-Fi (online)" icon={Wifi} />
             </View>
 
             <View style={styles.actionRow}>
-              <TouchableOpacity style={styles.primaryButton}>
-                <RefreshCcw size={16} color="#020617" />
-                <Text style={styles.primaryButtonText}>Update Firmware</Text>
+              <TouchableOpacity
+                style={[styles.primaryButton, { backgroundColor: theme.accent }]}
+              >
+                <RefreshCcw size={16} color={mode === "dark" ? "#020617" : "#FFFFFF"} />
+                <Text
+                  style={[
+                    styles.primaryButtonText,
+                    { color: mode === "dark" ? "#020617" : "#FFFFFF" },
+                  ]}
+                >
+                  Update Firmware
+                </Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.secondaryButton}>
-                <Text style={styles.secondaryButtonText}>Calibrate</Text>
+
+              <TouchableOpacity
+                style={[
+                  styles.secondaryButton,
+                  { borderColor: theme.border, backgroundColor: theme.card },
+                ]}
+              >
+                <Text style={[styles.secondaryButtonText, { color: theme.text }]}>
+                  Calibrate
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
 
           {/* Auto-lock & Feedback */}
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Auto-Lock & Feedback</Text>
-            <SettingRow label="Auto-Lock Timer" value="30s" />
-            <SettingRow label="Sound Feedback" value="Enabled" />
-            <SettingRow label="LED Indicator" value="Enabled" />
+          <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+            <Text style={[styles.cardTitle, { color: theme.text }]}>
+              Auto-Lock & Feedback
+            </Text>
+            <SettingRow theme={theme} label="Auto-Lock Timer" value="30s" accent={iconAccent} />
+            <SettingRow theme={theme} label="Sound Feedback" value="Enabled" accent={iconAccent} />
+            <SettingRow theme={theme} label="LED Indicator" value="Enabled" accent={iconAccent} />
           </View>
         </ScrollView>
       </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
 
+type ThemeShape = {
+  card: string;
+  border: string;
+  text: string;
+  muted: string;
+  accent: string;
+};
+
 type TagProps = {
+  theme: ThemeShape;
   label: string;
   value: string;
   icon?: React.ComponentType<{ size?: number; color?: string }>;
 };
 
-function InfoTag({ label, value, icon: Icon }: TagProps) {
+function InfoTag({ theme, label, value, icon: Icon }: TagProps) {
   return (
-    <View style={styles.tag}>
+    <View style={[styles.tag, { backgroundColor: theme.card, borderColor: theme.border }]}>
       <View style={{ flexDirection: "row", alignItems: "center" }}>
-        {Icon && <Icon size={14} color="#9CA3AF" />}
-        <Text style={styles.tagLabel}>
+        {Icon && <Icon size={14} color={theme.muted} />}
+        <Text style={[styles.tagLabel, { color: theme.muted }]}>
           {Icon ? "  " : ""}
           {label}
         </Text>
       </View>
-      <Text style={styles.tagValue}>{value}</Text>
+      <Text style={[styles.tagValue, { color: theme.text }]}>{value}</Text>
     </View>
   );
 }
 
 type RowProps = {
+  theme: ThemeShape;
   label: string;
   value: string;
+  accent: string;
 };
 
-function SettingRow({ label, value }: RowProps) {
+function SettingRow({ theme, label, value, accent }: RowProps) {
   return (
-    <View style={styles.settingRow}>
-      <Text style={styles.settingLabel}>{label}</Text>
-      <Text style={styles.settingValue}>{value}</Text>
+    <View style={[styles.settingRow, { backgroundColor: theme.card, borderColor: theme.border }]}>
+      <Text style={[styles.settingLabel, { color: theme.text }]}>{label}</Text>
+      <Text style={[styles.settingValue, { color: accent }]}>{value}</Text>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
+
+      container: {
+    paddingVertical: 5,
+    flex: 1,
+    paddingHorizontal: 0,
+  },
   safe: {
     flex: 1,
-    backgroundColor: "#020617",
   },
+
   header: {
     flexDirection: "row",
     alignItems: "center",
@@ -129,28 +180,25 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 999,
-    backgroundColor: "#0F172A",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 10,
+    borderWidth: 1,
   },
   headerTitle: {
     fontSize: 20,
     fontWeight: "600",
-    color: "#F9FAFB",
   },
   headerSub: {
     fontSize: 12,
-    color: "#9CA3AF",
   },
+
   card: {
     marginHorizontal: 16,
     marginBottom: 16,
     padding: 14,
     borderRadius: 20,
-    backgroundColor: "#020617",
     borderWidth: 1,
-    borderColor: "#111827",
   },
   cardHeader: {
     flexDirection: "row",
@@ -161,8 +209,8 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#E5E7EB",
   },
+
   infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -174,19 +222,17 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: "#020617",
     borderWidth: 1,
-    borderColor: "#1F2937",
   },
   tagLabel: {
     fontSize: 11,
-    color: "#9CA3AF",
   },
   tagValue: {
     fontSize: 13,
-    color: "#E5E7EB",
     marginTop: 4,
+    fontWeight: "600",
   },
+
   actionRow: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -196,7 +242,6 @@ const styles = StyleSheet.create({
   primaryButton: {
     flex: 1,
     borderRadius: 999,
-    backgroundColor: "#22D3EE",
     paddingVertical: 8,
     flexDirection: "row",
     justifyContent: "center",
@@ -204,41 +249,38 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   primaryButtonText: {
-    color: "#020617",
     fontSize: 13,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   secondaryButton: {
     flex: 1,
     borderRadius: 999,
     borderWidth: 1,
-    borderColor: "#4B5563",
     paddingVertical: 8,
     justifyContent: "center",
     alignItems: "center",
   },
   secondaryButtonText: {
-    color: "#E5E7EB",
     fontSize: 13,
+    fontWeight: "600",
   },
+
   settingRow: {
     marginTop: 10,
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 12,
-    backgroundColor: "#020617",
     borderWidth: 1,
-    borderColor: "#1F2937",
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
   settingLabel: {
     fontSize: 13,
-    color: "#E5E7EB",
+    fontWeight: "600",
   },
   settingValue: {
     fontSize: 13,
-    color: "#22D3EE",
+    fontWeight: "700",
   },
 });

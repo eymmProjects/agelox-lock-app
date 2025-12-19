@@ -1,109 +1,55 @@
-  // app/(tabs)/_layout.tsx
-  import { Tabs } from "expo-router";
-import { Cpu, Home, ShoppingBag, User } from "lucide-react-native";
-import React from "react";
-import { View } from "react-native";
+// app/(tabs)/_layout.tsx
+import { Tabs } from "expo-router";
+import { Camera, Home, KeyRound, Settings, User } from "lucide-react-native";
 
 export default function TabsLayout() {
   return (
-    // <ThemeProvider>
-      // <Stack>
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarShowLabel: true,
-        tabBarActiveTintColor: "#F9FAFB",
-        tabBarInactiveTintColor: "#6B7280",
         tabBarStyle: {
-          backgroundColor: "#000000",   // pure black like Xiaomi
-          borderTopColor: "#111827",
-          borderTopWidth: 0.5,
-          height: 70,
-          paddingTop: 6,
+          backgroundColor: "#020617",
+          borderTopColor: "#1f2933",
         },
-        tabBarLabelStyle: {
-          fontSize: 11,
-          marginTop: 2,
-          marginBottom: 6,
-        },
+        tabBarActiveTintColor: "#22D3EE",
+        tabBarInactiveTintColor: "#9CA3AF",
       }}
     >
-      {/* 1. HOME = Xiaomi Home */}
       <Tabs.Screen
-        name="index" // your HomeScreen: app/(tabs)/index.tsx
+        name="home"
         options={{
-          tabBarLabel: "Xiaomi Home",
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrapper focused={focused}>
-              <Home size={22} color={color} />
-            </IconWrapper>
-          ),
+          title: "Home",
+          tabBarIcon: ({ color, size }) => <Home color={color} size={size} />,
         }}
       />
-
-      {/* 2. SMART */}
       <Tabs.Screen
-        name="smart" // create app/(tabs)/smart.tsx or point to your "automation" screen
+        name="camera"
         options={{
-          tabBarLabel: "Smart",
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrapper focused={focused}>
-              <Cpu size={22} color={color} />
-            </IconWrapper>
-          ),
+          title: "Camera",
+          tabBarIcon: ({ color, size }) => <Camera color={color} size={size} />,
         }}
       />
-
-      {/* 3. STORE */}
       <Tabs.Screen
-        name="store" // create app/(tabs)/store.tsx or map to your "devices" or "settings"
+        name="access"
         options={{
-          tabBarLabel: "Store",
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrapper focused={focused}>
-              <ShoppingBag size={22} color={color} />
-            </IconWrapper>
-          ),
+          title: "Access",
+          tabBarIcon: ({ color, size }) => <KeyRound color={color} size={size} />,
         }}
       />
-
-      {/* 4. PROFILE */}
       <Tabs.Screen
-        name="profile" // create app/(tabs)/profile.tsx
+        name="devices"
         options={{
-          tabBarLabel: "Profile",
-          tabBarIcon: ({ color, focused }) => (
-            <IconWrapper focused={focused}>
-              <User size={22} color={color} />
-            </IconWrapper>
-          ),
+          title: "Devices",
+          tabBarIcon: ({ color, size }) => <Settings color={color} size={size} />,
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
         }}
       />
     </Tabs>
-    // </Stack>
-  );
-}
-
-/**
- * Small wrapper to give a subtle “pressed” feeling
- * on the active icon (similar to Xiaomi but minimal).
- */
-function IconWrapper({
-  focused,
-  children,
-}: {
-  focused: boolean;
-  children: React.ReactNode;
-}) {
-  return (
-    <View
-      style={{
-        padding: 4,
-        borderRadius: 999,
-        backgroundColor: focused ? "rgba(156,163,175,0.18)" : "transparent",
-      }}
-    >
-      {children}
-    </View>
   );
 }

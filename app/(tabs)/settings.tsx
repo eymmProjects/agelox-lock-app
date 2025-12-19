@@ -9,15 +9,18 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useTheme } from "../theme/ThemeProvider"; // app/(tabs)/settings.tsx -> app/theme/ThemeProvider.tsx
-
 type ThemePreference = "light" | "dark" | "auto";
 
 export default function SettingsScreen() {
+  const insets = useSafeAreaInsets();
   const { theme, preference, setPreference } = useTheme();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+          <View style={[styles.container, { paddingTop: insets.top }]}>
+
       <LinearGradient colors={[theme.bg, theme.bg]} style={styles.safe}>
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
           {/* Header / Profile */}
@@ -69,6 +72,7 @@ export default function SettingsScreen() {
           </View>
         </ScrollView>
       </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -147,6 +151,12 @@ function IconRow({ theme, icon: Icon, label, value }: IconRowProps) {
 }
 
 const styles = StyleSheet.create({
+    container: {
+    paddingVertical: 5,
+    flex: 1,
+    paddingHorizontal: 0,
+  },
+
   safe: {
     flex: 1,
   },

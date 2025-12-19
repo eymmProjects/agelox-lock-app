@@ -1,39 +1,26 @@
 // app/_layout.tsx
 import { Stack } from "expo-router";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ThemeProvider } from "./theme/ThemeProvider";
 
 export default function RootLayout() {
   return (
-    <ThemeProvider>
-      
-      <Stack
-        screenOptions={{
-          headerShown: false,          // we handle headers in each screen
-          animation: "slide_from_right", // default slide animation for pushes
-        }}
-      >
-        {/* Tabs navigator group */}
-        <Stack.Screen name="(tabs)" />
-
-        {/* Notifications screen (slide in from right) */}
-        <Stack.Screen
-          name="notifications"
-          options={{
-            // you can override animation here if you want something else:
-            // animation: "slide_from_right",
+    <SafeAreaProvider>
+      <ThemeProvider>
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            animation: "slide_from_right",
           }}
-        />
-
-        {/* Optional modal screen */}
-        <Stack.Screen
-          name="modal"
-          options={{
-            presentation: "modal",
-            title: "Modal",
-          }}
-        />
-      </Stack>
-    
-    </ThemeProvider>
+        >
+          <Stack.Screen name="(tabs)" />
+          <Stack.Screen name="notifications" />
+          <Stack.Screen
+            name="modal"
+            options={{ presentation: "modal" }}
+          />
+        </Stack>
+      </ThemeProvider>
+    </SafeAreaProvider>
   );
 }
