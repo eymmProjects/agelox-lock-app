@@ -100,7 +100,7 @@ const ROOMS: Room[] = [
 export default function HomeScreen() {
   const { theme, mode, preference, setPreference } = useTheme();
   const [featuresOpen, setFeaturesOpen] = useState(false);
-  
+  const iconColor = mode === "dark" ? "#9CA3AF" : "#475569";
 const heroGradient: readonly [ColorValue, ColorValue, ...ColorValue[]] =
   theme.mode === "dark"
     ? ["#020617", "#020617"]
@@ -348,7 +348,15 @@ const toggleFeatures = () => {
             <View style={styles.statusHeaderRow}>
               {/* LEFT */}
               <View style={styles.statusLeft}>
-                              <View style={styles.smallIconWrap}>
+               <View
+                  style={[
+                    styles.smallIconWrap,
+                    {
+                      backgroundColor: theme.card,
+                      borderColor: theme.border,
+                    },
+                  ]}
+                >
                   {locked ? (
                     <Lock size={18} color={lockColor} />
                   ) : (
@@ -672,6 +680,7 @@ function ToggleGate({ label, active, onToggle, number }: ToggleGateProps) {
 
 
 
+
 function TopWeather({
   temp,
   location,
@@ -681,22 +690,34 @@ function TopWeather({
   location: string;
   compact?: boolean;
 }) {
+  const { theme, mode } = useTheme();
+
+  const iconColor = mode === "dark" ? theme.muted : theme.muted; // same muted works well in both
+
   return (
     <View style={[styles.topStatus, compact && { width: "auto" }]}>
-      <View style={styles.topStatusIconWrap}>
-        <CloudRain size={18} color="#9CA3AF" />
+      <View
+        style={[
+          styles.topStatusIconWrap,
+          {
+            backgroundColor: theme.card,
+            borderColor: theme.border,
+          },
+        ]}
+      >
+        <CloudRain size={18} color={iconColor} />
       </View>
+
       <View>
-        <Text style={styles.metricLabel}>Weather</Text>
-        <Text style={styles.metricValue}>
+        <Text style={[styles.metricLabel, { color: theme.muted }]}>Weather</Text>
+        <Text style={[styles.metricValue, { color: theme.text }]}>
           {temp}
-           {/* • {location} */}
+          {/* optional:  • {location} */}
         </Text>
       </View>
     </View>
   );
 }
-
 
 function TopStatus({ theme, icon: Icon, label, status }: TopStatusProps) {
   return (
