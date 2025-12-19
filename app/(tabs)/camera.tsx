@@ -17,6 +17,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useTheme } from "../theme/ThemeProvider";
 
 type VisionMode = "none" | "single" | "dual" | "triple";
 type CamId = "front" | "down" | "up";
@@ -36,6 +37,7 @@ const VISION_MODES: { id: VisionMode; label: string; desc: string }[] = [
 ];
 
 export default function CameraScreen() {
+  const { theme } = useTheme();
   // You can later load this from your lock device capability (API/BLE/Wi-Fi)
   const [visionMode, setVisionMode] = useState<VisionMode>("single");
 
@@ -84,39 +86,49 @@ export default function CameraScreen() {
       : "Camera";
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <LinearGradient colors={["#020617", "#020617"]} style={styles.safe}>
+<SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+  <LinearGradient colors={[theme.bg, theme.bg]} style={[styles.safe, { backgroundColor: theme.bg }]}>
+
         <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 32 }}>
           {/* Header */}
           <View style={styles.header}>
-            <View style={styles.headerIconWrap}>
-              <Camera size={22} color="#22D3EE" />
+<View style={[styles.headerIconWrap, { backgroundColor: theme.card, borderColor: theme.border }]}>
+
+            <Camera size={22} color={theme.accent} />
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={styles.headerTitle}>Live View</Text>
-              <Text style={styles.headerSub}>{subtitle}</Text>
+          <Text style={[styles.headerTitle, { color: theme.text }]}>Live View</Text>
+<Text style={[styles.headerSub, { color: theme.muted }]}>{subtitle}</Text>
             </View>
           </View>
 
           {/* Vision Mode Selector */}
           <View style={styles.visionRow}>
-            <Text style={styles.sectionLabel}>Vision configuration</Text>
+            <Text style={[styles.sectionLabel, { color: theme.muted }]}>Vision configuration</Text>
+
             <View style={styles.visionChips}>
               {VISION_MODES.map((m) => {
                 const active = m.id === visionMode;
                 return (
-                  <TouchableOpacity
-                    key={m.id}
-                    style={[styles.chip, active && styles.chipActive]}
-                    onPress={() => setVisionMode(m.id)}
-                  >
-                    <Text style={[styles.chipText, active && styles.chipTextActive]}>
-                      {m.label}
-                    </Text>
-                    <Text style={[styles.chipSub, active && styles.chipSubActive]}>
-                      {m.desc}
-                    </Text>
-                  </TouchableOpacity>
+              <TouchableOpacity
+                key={m.id}
+                style={[
+                  styles.chip,
+                  {
+                    borderColor: active ? theme.accent : theme.border,
+                    backgroundColor: active ? `${theme.accent}14` : theme.card,
+                  },
+                ]}
+                onPress={() => setVisionMode(m.id)}
+              >
+                <Text style={[styles.chipText, { color: active ? theme.text : theme.text }]}>
+                  {m.label}
+                </Text>
+                <Text style={[styles.chipSub, { color: active ? theme.accent : theme.muted }]}>
+                  {m.desc}
+                </Text>
+              </TouchableOpacity>
+
                 );
               })}
             </View>
@@ -131,27 +143,39 @@ export default function CameraScreen() {
                 return (
                   <TouchableOpacity
                     key={t.id}
-                    style={[styles.cameraTab, active && styles.cameraTabActive]}
+                    style={[
+                        styles.cameraTab,
+                        {
+                          borderColor: active ? theme.accent : theme.border,
+                          backgroundColor: active ? `${theme.accent}12` : theme.card,
+                        },
+                      ]}
                     onPress={() => setSelectedCam(t.id)}
                   >
-                    <View style={[styles.cameraTabIconWrap, active && styles.cameraTabIconWrapActive]}>
-                      <Icon size={18} color={active ? "#22D3EE" : "#9CA3AF"} />
+                    <View
+                      style={[
+                        styles.cameraTabIconWrap,
+                        { borderColor: theme.border, backgroundColor: theme.bg },
+                        active && { borderColor: `${theme.accent}55` },
+                      ]}
+                    >
+                      <Icon size={18} color={active ? theme.accent : theme.muted} />
                     </View>
-                    <Text style={[styles.cameraTabText, active && styles.cameraTabTextActive]}>
-                      {t.name}
-                    </Text>
+                    <Text style={[styles.cameraTabText, { color: active ? theme.text : theme.muted }]}>{t.name}</Text>
+
                   </TouchableOpacity>
                 );
               })}
             </View>
           )}
 
-          {/* Live view card */}
-          <View style={styles.card}>
-            <View style={styles.liveBox}>
+              {/* Live view card */}
+            <View style={[styles.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
+              <View style={[styles.liveBox, { backgroundColor: theme.bg, borderColor: theme.border }]}>
+
               {visionMode === "none" ? (
                 <>
-                  <ShieldCheck size={52} color="#22D3EE" />
+                <ShieldCheck size={52} color={theme.accent} />
                   <Text style={styles.liveHint}>This lock has no camera module</Text>
                   <Text style={[styles.liveHint, { marginTop: 4 }]}>
                     Add a camera module to enable live view
@@ -159,8 +183,8 @@ export default function CameraScreen() {
                 </>
               ) : (
                 <>
-                  <Camera size={52} color="#22D3EE" />
-                  <Text style={styles.liveHint}>No live feed connected</Text>
+                  <Camera size={52} color={theme.accent} />
+                  <Text style={[styles.liveHint, { color: theme.muted }]}>No live feed connected</Text>
                   <Text style={[styles.liveHint, { marginTop: 4 }]}>
                     {activeTab ? activeTab.hint : "Select a camera"}
                   </Text>
@@ -169,11 +193,11 @@ export default function CameraScreen() {
             </View>
 
             <View style={styles.liveFooter}>
-              <Text style={styles.liveStatus}>
+              <Text style={[styles.liveStatus, { color: theme.muted }]}>
                 {visionMode === "none" ? "N/A • No camera" : "Offline • Tap to configure"}
               </Text>
               <TouchableOpacity>
-                <Text style={styles.liveLink}>
+                <Text style={[styles.liveLink, { color: theme.accent }]}>
                   {visionMode === "none" ? "Learn more ›" : "Camera settings ›"}
                 </Text>
               </TouchableOpacity>
@@ -182,9 +206,10 @@ export default function CameraScreen() {
 
           {/* Controls */}
           <View style={styles.controlsRow}>
-            <ControlButton icon={Video} label="Record" disabled={visionMode === "none"} />
-            <ControlButton icon={ImageIcon} label="Snapshot" disabled={visionMode === "none"} />
-            <ControlButton icon={Bell} label="Motion Alerts" disabled={visionMode === "none"} />
+          <ControlButton theme={theme} icon={Video} label="Record" disabled={visionMode === "none"} />
+          <ControlButton theme={theme} icon={ImageIcon} label="Snapshot" disabled={visionMode === "none"} />
+          <ControlButton theme={theme} icon={Bell} label="Motion Alerts" disabled={visionMode === "none"} />
+
           </View>
         </ScrollView>
       </LinearGradient>
@@ -197,14 +222,14 @@ type ControlProps = {
   label: string;
   disabled?: boolean;
 };
-
-function ControlButton({ icon: Icon, label, disabled }: ControlProps) {
+function ControlButton({ icon: Icon, label, disabled, theme }: ControlProps & { theme: any }) {
   return (
     <TouchableOpacity style={[styles.controlButton, disabled && { opacity: 0.45 }]} disabled={disabled}>
-      <View style={styles.controlIconWrap}>
-        <Icon size={20} color="#E5E7EB" />
+      <View style={[styles.controlIconWrap, { backgroundColor: theme.card, borderColor: theme.border }]}>
+        <Icon size={20} color={theme.text} />
       </View>
-      <Text style={styles.controlLabel}>{label}</Text>
+      <Text style={[styles.controlLabel, { color: theme.text }]}>{label}</Text>
+
     </TouchableOpacity>
   );
 }

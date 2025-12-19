@@ -6,6 +6,7 @@ import {
   Bell,
   Bluetooth,
   ChevronDown,
+  ChevronLeft,
   CloudRain,
   KeyRound,
   List,
@@ -18,27 +19,38 @@ import {
   Unlock,
   Wifi
 } from "lucide-react-native";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import type { ColorValue } from "react-native";
 import {
+  LayoutAnimation,
   Modal,
+  Platform,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  UIManager,
   View
 } from "react-native";
+
+
+import { useTheme } from "../theme/ThemeProvider"; // adjust path if needed
 
 import { BlurView } from "expo-blur";
 
 type IconType = React.ComponentType<{ size?: number; color?: string }>;
-
+type Room = {
+  id: string;
+  name: string;
+};
 type FeatureCardProps = {
   title: string;
   subtitle: string;
-  icon: IconType;
-  accent?: string;
+  icon: any;
+  accent: string;
   onPress?: () => void;
+  theme: { card: string; border: string; text: string; muted: string };
 };
 
 type ToggleGateProps = {
@@ -56,15 +68,19 @@ type TopActionProps = {
 };
 
 type TopStatusProps = {
+  theme: {
+    card: string;
+    border: string;
+    text: string;
+    muted: string;
+  };
   icon: React.ComponentType<{ size?: number; color?: string }>;
   label: string;
   status: string;
 };
 
-type Room = {
-  id: string;
-  name: string;
-};
+
+
 
 type CameraTab ={id:"front" | "back"; name:string}
 
@@ -79,7 +95,34 @@ const ROOMS: Room[] = [
   { id: "kitchen", name: "Kitchen" },
 ];
 
+
+
 export default function HomeScreen() {
+  const { theme, mode, preference, setPreference } = useTheme();
+  const [featuresOpen, setFeaturesOpen] = useState(false);
+  
+const heroGradient: readonly [ColorValue, ColorValue, ...ColorValue[]] =
+  theme.mode === "dark"
+    ? ["#020617", "#020617"]
+    : ["#FFFFFF", "#F8FAFC"];
+
+  const lockGradient: readonly [ColorValue, ColorValue, ...ColorValue[]]=
+  theme.mode === "dark"
+    ? ["#020617", "#020617"]
+    : ["#E5E7EB", "#FFFFFF"];
+   
+
+useEffect(() => {
+  if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
+    UIManager.setLayoutAnimationEnabledExperimental(true);
+  }
+}, []);
+
+const toggleFeatures = () => {
+  LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+  setFeaturesOpen((v) => !v);
+};
+
   const [cameraTab,setCameraTab] = useState<CameraTab>(CAMERA_TABS[0]);
   const [roomMenuVisible, setRoomMenuVisible] = useState(false);
   const [gate2, setGate2] = useState(true);
@@ -116,11 +159,8 @@ export default function HomeScreen() {
   const lockColor = locked ? "#22C55E" : "#F97316";
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <LinearGradient
-        colors={["#020617", "#020617", "#020617"]}
-        style={styles.safe}
-      >
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+        <LinearGradient colors={[theme.bg, theme.bg]} style={styles.safe}>
         {/* PLUS DROPDOWN OVERLAY */}
         {roomMenuVisible && (
               <TouchableOpacity
@@ -187,275 +227,325 @@ export default function HomeScreen() {
           contentContainerStyle={{ paddingBottom: 32 }}
         >
           {/* TOP BAR: Home name + icons */}
-          <View style={styles.homeHeaderRow}>
-         <TouchableOpacity
-            style={styles.homeNameRow}
-            onPress={() => setHomeMenuVisible(true)}
-          >
-            <Text style={styles.homeNameText}>Alex’s Home</Text>
-            <ChevronDown size={16} color="#E5E7EB" />
-          </TouchableOpacity>
+            <View style={styles.homeHeaderRow}>
+            <TouchableOpacity
+              style={styles.homeNameRow}
+              onPress={() => setHomeMenuVisible(true)}
+            >
+              <Text style={[styles.homeNameText, { color: theme.text }]}>
+                Alex’s Home
+              </Text>
+
+              <ChevronDown size={16} color={theme.text} />
+            </TouchableOpacity>
+
             <View style={styles.homeHeaderIcons}>
               <TouchableOpacity
-                style={styles.headerIconButton}
+                style={[
+                  styles.headerIconButton,
+                  { borderColor: theme.border, backgroundColor: theme.card },
+                ]}
                 onPress={() => router.push("/notifications")}
               >
-                <MessageCircle size={18} color="#E5E7EB" />
+                <MessageCircle size={18} color={theme.text} />
               </TouchableOpacity>
+
               <TouchableOpacity
-                style={styles.headerIconButton}
+                style={[
+                  styles.headerIconButton,
+                  { borderColor: theme.border, backgroundColor: theme.card },
+                ]}
                 onPress={() => setPlusMenuVisible((v) => !v)}
               >
-                <Plus size={18} color="#E5E7EB" />
+                <Plus size={18} color={theme.text} />
               </TouchableOpacity>
             </View>
           </View>
 
+
           {/* ROOM TABS + menu pill */}
-          <View style={styles.roomsTabsRow}>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.roomsTabsScroll}
-            >
-              {ROOMS.map((room) => {
-                const active = room.id === selectedRoom.id;
-                return (
-                  <TouchableOpacity
-                    key={room.id}
-                    onPress={() => setSelectedRoom(room)}
-                  >
-                    <Text
-                      style={[
-                        styles.roomTabText,
-                        active && styles.roomTabTextActive,
-                      ]}
-                    >
-                      {room.name}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
-                  <TouchableOpacity
-                    style={styles.menuPill}
-                    onPress={() => setRoomMenuVisible(true)}
-                  >
-                    <List size={18} color="#E5E7EB" />
-                  </TouchableOpacity>
-          </View>
+     <View style={styles.roomsTabsRow}>
+  <ScrollView
+    horizontal
+    showsHorizontalScrollIndicator={false}
+    contentContainerStyle={styles.roomsTabsScroll}
+  >
+    {ROOMS.map((room) => {
+      const active = room.id === selectedRoom.id;
+
+      return (
+        <TouchableOpacity key={room.id} onPress={() => setSelectedRoom(room)}>
+          <Text
+            style={[
+              styles.roomTabText,
+              { color: theme.muted },                 // default
+              active && [styles.roomTabTextActive, { color: theme.text }], // active
+            ]}
+          >
+            {room.name}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </ScrollView>
+
+  <TouchableOpacity
+    style={[
+      styles.menuPill,
+      { backgroundColor: theme.card, borderColor: theme.border },
+    ]}
+    onPress={() => setRoomMenuVisible(true)}
+  >
+    <List size={18} color={theme.text} />
+  </TouchableOpacity>
+</View>
+
 
           {/* HERO */}
-          <View style={styles.heroWrapper}>
-            <LinearGradient
-              colors={["#020617", "#020617"]}
-              style={styles.heroCard}
-            >
-           
-<View style={styles.statusPhoneContainer}>
-  {/* Header area */}
-  <View style={[styles.metricsRow]}>
-    <View style={{ flexDirection: "column" }}>
-      {/* Tabs */}
-      <View style={styles.cameraTabsRow}>
-        {CAMERA_TABS.map((t) => {
-          const active = t.id === cameraTab.id;
-          return (
-            <TouchableOpacity
-              key={t.id}
-              style={[styles.cameraTab, active && styles.cameraTabActive]}
-              onPress={() => setCameraTab(t)}
-            >
-              <Text
-                style={[
-                  styles.cameraTabText,
-                  active && styles.cameraTabTextActive,
-                ]}
-              >
-                {t.name}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      {/* Lock status row */}
-        <View style={styles.statusHeaderRow}>
-          {/* LEFT */}
-          <View style={styles.statusLeft}>
-            <View style={styles.smallIconWrap}>
-              {locked ? (
-                <Lock size={18} color="#E5E7EB" />
-              ) : (
-                <Unlock size={18} color={lockColor} />
-              )}
-            </View>
-
-            <View style={{ marginLeft: 10 }}>
-              <Text style={styles.metricMain}>{lockStatus}</Text>
-              <Text style={styles.metricSub}>
-                {cameraTab.id === "front" ? "Front Door" : "Back Door"}
-              </Text>
-            </View>
+         <View style={[styles.heroWrapper]}>
+  {/* Outer card border/background */}
+<View
+  style={[
+    styles.heroCard,
+    { backgroundColor: theme.card, borderColor: theme.border },
+  ]}
+>
+  <LinearGradient colors={heroGradient} style={styles.heroCard}>
+      <View style={styles.statusPhoneContainer}>
+        <View style={[styles.metricsRow]}>
+          <View style={{ flexDirection: "column" }}>
+            {/* Tabs */}
+                  <View style={styles.cameraTabsRow}>
+            {CAMERA_TABS.map((t) => {
+              const active = t.id === cameraTab.id;
+              return (
+                <TouchableOpacity
+                  key={t.id}
+                  style={[
+                    styles.cameraTab,
+                    {
+                      backgroundColor: theme.card,
+                      borderColor: active ? theme.accent : theme.border,
+                    },
+                  ]}
+                  onPress={() => setCameraTab(t)}
+                >
+                  <Text
+                    style={[
+                      styles.cameraTabText,
+                      { color: active ? theme.text : theme.muted },
+                    ]}
+                  >
+                    {t.name}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* RIGHT */}
-          <View style={styles.weatherRight}>
-            <TopWeather temp="14°" location="California" compact />
+
+            {/* Lock status row */}
+            <View style={styles.statusHeaderRow}>
+              {/* LEFT */}
+              <View style={styles.statusLeft}>
+                              <View style={styles.smallIconWrap}>
+                  {locked ? (
+                    <Lock size={18} color={lockColor} />
+                  ) : (
+                    <Unlock size={18} color={lockColor} />
+                  )}
+                </View>
+
+                <Text style={[styles.metricMain, { color: theme.text }]}>
+                  {lockStatus}
+                </Text>
+
+                <Text style={[styles.metricSub, { color: theme.muted }]}>
+                  {cameraTab.id === "front" ? "Front Door" : "Back Door"}
+                </Text>
+
+              </View>
+
+              {/* RIGHT */}
+              <View style={styles.weatherRight}>
+                <TopWeather temp="14°" location="California" compact />
+              </View>
+            </View>
           </View>
         </View>
-    </View>
+
+        {/* Content changes based on tab */}
+          <View style={styles.statusPhoneContainer}>
+            <View style={styles.statusGrid}>
+              <TopStatus theme={theme} icon={Battery} label="Battery" status="87%" />
+              <TopStatus theme={theme} icon={Wifi} label="WiFi" status="Online" />
+              <TopStatus theme={theme} icon={Bluetooth} label="Bluetooth" status="Connected" />
+              <TopStatus theme={theme} icon={Thermometer} label="Temp" status="27°C" />
+              <TopStatus theme={theme} icon={Activity} label="Humidity" status="63%" />
+            </View>
+          </View>
+
+      </View>
+
+      {/* Lock + Gate section */}
+      <View style={[styles.heroMiddleRow, { marginTop: 18 }]}>
+        <View style={styles.lockCenterWrap}>
+          <View style={styles.lockRingOuter}>
+            <View style={styles.lockRingMid}>
+            <LinearGradient colors={lockGradient} style={styles.lockCircle}>
+                <TouchableOpacity
+                  onPress={() => setLocked(!locked)}
+                  style={[styles.lockCircle, { borderColor: lockColor }]}
+                >
+                  {locked ? (
+                    <Unlock size={26} color={lockColor} />
+                  ) : (
+                    <Lock size={26} color={lockColor} />
+                  )}
+                </TouchableOpacity>
+              </LinearGradient>
+
+            </View>
+          </View>
+
+        <Text style={[styles.heroActionTextCenter, { color: theme.muted  ,marginBottom:20}]}>
+          {locked ? "Tap to unlock" : "Tap to lock"}
+        </Text>
+        </View>
+
+        {/* Gate button BELOW */}
+        <View style={styles.gateBelowWrap}>
+              <TouchableOpacity
+            onPress={requestToggleSecondGate}
+            activeOpacity={0.85}
+            style={[
+              styles.gatePill,
+              {
+                backgroundColor: gate2
+                  ? theme.accent + "20"
+                  : "#EF444420",
+                borderColor: gate2 ? theme.accent : "#EF4444",
+              },
+            ]}
+          >
+            <Shield size={18} color={gate2 ? theme.accent : "#EF4444"} />
+            <Text
+              style={[
+                styles.gatePillText,
+                { color: gate2 ? theme.text : "#EF4444" },
+              ]}
+            >
+              Gate 2 • {gate2 ? "Enabled" : "Disabled"}
+            </Text>
+          </TouchableOpacity>
+
+        </View>
+      </View>
+
+      {/* status footer */}
+      <View style={styles.heroFooterRow}>
+        <View style={{ flexDirection: "column" }}>
+          <View style={{ flexDirection: "row" }}>
+            <View
+                style={[
+                  styles.dot,
+                  { backgroundColor: locked ? "#22C55E" : "#F97316" },
+                ]}
+              />
+
+              <Text style={[styles.heroStatusText, { color: theme.text }]}>
+                {locked ? "Door • Secure" : "Door open"}
+              </Text>
+          </View>
+
+          <View style={{ flexDirection: "row" }}>
+            <View
+              style={[
+                styles.dot,
+                { backgroundColor: locked ? "#22C55E" : "#F97316" },
+              ]}
+            />
+            <Text style={[styles.heroStatusText, { color: theme.text }]}>
+              {locked ? "Bolt • Secure" : "Bolt Retracted"}
+            </Text>
+          </View>
+        </View>
+
+        <TouchableOpacity onPress={() => router.push("/(tabs)/devices")}>
+          <Text style={[styles.heroLink, { color: theme.accent }]}>
+            Device details ›
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </LinearGradient>
   </View>
+</View>
 
-  {/* Content changes based on tab */}
-  {cameraTab.id === "front" ? (
-    <View style={styles.statusPhoneContainer}>
-      <View style={styles.statusGrid}>
-        {/* <Text style={{ color: "#E5E7EB" }}>Front Door</Text> */}
 
-        <TopStatus icon={Battery} label="Battery" status="87%" />
-        <TopStatus icon={Wifi} label="WiFi" status="Online" />
-        <TopStatus icon={Bluetooth} label="Bluetooth" status="Connected" />
-        <TopStatus icon={Thermometer} label="Temp" status="27°C" />
-        <TopStatus icon={Activity} label="Humidity" status="63%" />
-      </View>
+   
+<View style={styles.featuresSection}>
+  <TouchableOpacity
+    style={[
+      styles.featuresHeader,
+      {
+        paddingHorizontal: 15,
+        backgroundColor: theme.card,
+        borderColor: theme.border,
+      },
+    ]}
+    onPress={toggleFeatures}
+    activeOpacity={0.85}
+  >
+    <Text style={[styles.featuresTitle, { color: theme.text }]}>
+      Quick actions
+    </Text>
+
+    <View style={styles.featuresChevronWrap}>
+      {featuresOpen ? (
+        <ChevronDown size={20} color={theme.text} />
+      ) : (
+        <ChevronLeft size={20} color={theme.text} />
+      )}
     </View>
-  ) : (
-    <View style={styles.statusPhoneContainer}>
-      <View style={styles.statusGrid}>
-        {/* <Text style={{ color: "#E5E7EB" }}>Back Door Camera Feed</Text> */}
+  </TouchableOpacity>
 
-        <TopStatus icon={Battery} label="Battery" status="87%" />
-        <TopStatus icon={Wifi} label="WiFi" status="Online" />
-        <TopStatus icon={Bluetooth} label="Bluetooth" status="Connected" />
-        <TopStatus icon={Thermometer} label="Temp" status="27°C" />
-        <TopStatus icon={Activity} label="Humidity" status="63%" />
-      </View>
+  {featuresOpen && (
+    <View style={styles.grid}>
+      <FeatureCard
+        title="Digital Key"
+        subtitle="Use app / NFC to unlock"
+        icon={KeyRound}
+        accent={theme.mode === "dark" ? "#22C55E" : "#16A34A"}
+        theme={theme}
+      />
+      <FeatureCard
+        title="Doorbell Alerts"
+        subtitle="Last alert • 09:12"
+        icon={Bell}
+        accent={theme.mode === "dark" ? "#F97316" : "#EA580C"}
+        onPress={() => router.push("/(tabs)/settings")}
+        theme={theme}
+      />
+      <FeatureCard
+        title="Device Health"
+        subtitle="All systems normal"
+        icon={Activity}
+        accent={theme.mode === "dark" ? "#22D3EE" : "#0891B2"}
+        onPress={() => router.push("/(tabs)/devices")}
+        theme={theme}
+      />
+      <FeatureCard
+        title="Access Logs"
+        subtitle="View recent door events"
+        icon={Settings}
+        accent={theme.mode === "dark" ? "#A855F7" : "#7C3AED"}
+        theme={theme}
+      />
     </View>
   )}
 </View>
 
 
-              
-
-              {/* Lock icon + action */}
-              <View style={[styles.heroMiddleRow, {marginTop:55}]}>
-
-  
-
-                
-                <View style={styles.deviceCircle}>
-    
-                  <View style={styles.heroActionCol}>
-                   <LinearGradient
-                              colors={["#0F172A", "#020617"]}
-                              style={styles.lockCircle}
-                            > 
-                      <TouchableOpacity
-                        onPress={() => setLocked(!locked)}
-                        style={[styles.lockCircle, { borderColor: lockColor }]}
-                      >
-                        {locked ? (
-
-                          <Unlock size={26} color={lockColor} />
-                        ) : (
-                          <Lock size={26} color={lockColor} />
-                        )}
-                      </TouchableOpacity>
-                    </LinearGradient>
-                    <Text style={styles.heroActionText}>
-                      {locked ? "Tap to unlock" : "Tap to lock"}
-                    </Text>
-                  </View>
-
-                  
-                </View>
-                  <View style={styles.heroActionCol}>
-
-
-                  <Text style={[styles.heroActionText,{ textAlign:"center", marginBottom:5}]}>
-                    Second Gate{"\n"}
-                    {gate2 ? "Enabled" : "Disabled"}
-                  </Text>
-
-
-                   <ToggleGate
-                      label={gate2 ? "Tap to Disable" : "Tap to Enable"}
-                      active={gate2}
-                      // number={2}
-                      onToggle={requestToggleSecondGate}
-                    />
-                  </View>
-
-              </View>
-              
-              {/* status footer */}
-              <View style={styles.heroFooterRow}>
-                <View style={{ flexDirection: "column" }}>
-              
-                <View style={{ flexDirection: "row",  }}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: locked ? "#22C55E" : "#F97316" },
-                    ]}
-                  />
-                  <Text style={styles.heroStatusText}>
-                    {/* {locked ? "Door secure • Auto-lock 30s" : "Door open"} */}
-                    {locked ? "Door • Secure  " : "Door open"}
-                  </Text>
-                </View>
-                  <View style={{ flexDirection: "row",  }}>
-                  <View
-                    style={[
-                      styles.dot,
-                      { backgroundColor: locked ? "#22C55E" : "#F97316" },
-                    ]}
-                  />
-                  {/* need to change */}
-                  <Text style={styles.heroStatusText}>
-                    {locked ? "Bolt • Secure" : "Bolt Retracted"}
-                  </Text>
-                </View>
-                </View>
-                <TouchableOpacity
-                  onPress={() => router.push("/(tabs)/devices")}
-                >
-                  <Text style={styles.heroLink}>Device details ›</Text>
-                </TouchableOpacity>
-              </View>
-            </LinearGradient>
-          </View>
-
-   
-          <View style={styles.grid}>
-            <FeatureCard
-              title="Digital Key"
-              subtitle="Use app / NFC to unlock"
-              icon={KeyRound}
-              accent="#22C55E"
-            />
-            <FeatureCard
-              title="Doorbell Alerts"
-              subtitle="Last alert • 09:12"
-              icon={Bell}
-              accent="#F97316"
-              onPress={() => router.push("/(tabs)/settings")}
-            />
-            <FeatureCard
-              title="Device Health"
-              subtitle="All systems normal"
-              icon={Activity}
-              accent="#22D3EE"
-              onPress={() => router.push("/(tabs)/devices")}
-            />
-            <FeatureCard
-              title="Access Logs"
-              subtitle="View recent door events"
-              icon={Settings}
-              accent="#A855F7"
-            />
-          </View>
         </ScrollView>
       </LinearGradient>
 
@@ -608,55 +698,223 @@ function TopWeather({
 }
 
 
-function TopStatus({ icon: Icon, label, status }: TopStatusProps) {
+function TopStatus({ theme, icon: Icon, label, status }: TopStatusProps) {
   return (
-    <View style={styles.topStatus}>
-      <View style={styles.topStatusIconWrap}>
-        <Icon size={18} color="#9CA3AF" />
+    <View
+      style={[
+        styles.statusItem, // create or reuse your item style (see below)
+        { backgroundColor: theme.card, borderColor: theme.border },
+      ]}
+    >
+      <View
+        style={[
+          styles.statusIconWrap,
+          { borderColor: theme.border, backgroundColor: theme.card },
+        ]}
+      >
+        <Icon size={16} color={theme.text} />
       </View>
-      <View>
-        <Text style={styles.metricLabel}>{label}</Text>
-        <Text style={styles.metricValue}>{status}</Text>
+
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.statusLabel, { color: theme.muted }]}>{label}</Text>
+        <Text style={[styles.statusValue, { color: theme.text }]}>{status}</Text>
       </View>
     </View>
   );
 }
 
-function FeatureCard({
-  title,
-  subtitle,
-  icon: Icon,
-  accent = "#22D3EE",
-  onPress,
-}: FeatureCardProps) {
+function FeatureCard({ title, subtitle, icon: Icon, accent, onPress, theme }: FeatureCardProps) {
   return (
-    <TouchableOpacity style={styles.featureCard} onPress={onPress}>
+    <TouchableOpacity
+      activeOpacity={0.85}
+      onPress={onPress}
+      style={[
+        styles.featureCard,
+        { backgroundColor: theme.card, borderColor: theme.border },
+      ]}
+    >
       <View style={styles.featureTopRow}>
-        <Text style={styles.featureTitle} numberOfLines={1}>
-          {title}
-        </Text>
+        <View>
+          <Text style={[styles.featureTitle, { color: theme.text }]}>{title}</Text>
+          <Text style={[styles.featureSubtitle, { color: theme.muted }]}>{subtitle}</Text>
+        </View>
+
         <View
           style={[
             styles.featureIconWrap,
-            { borderColor: accent + "55", backgroundColor: "#020617" },
+            { borderColor: accent, backgroundColor: `${accent}20` },
           ]}
         >
-          <Icon size={18} color={accent} />
+          <Icon size={16} color={accent} />
         </View>
       </View>
-      <Text style={styles.featureSubtitle} numberOfLines={2}>
-        {subtitle}
-      </Text>
     </TouchableOpacity>
-
-    
   );
-
 }
 
 /* styles */
 
 const styles = StyleSheet.create({
+
+  statusItem: {
+  width: "48%",
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+  paddingHorizontal: 10,
+  paddingVertical: 10,
+  borderRadius: 14,
+  borderWidth: 1,
+},
+
+statusIconWrap: {
+  width: 28,
+  height: 28,
+  borderRadius: 999,
+  alignItems: "center",
+  justifyContent: "center",
+  borderWidth: 1,
+},
+
+statusLabel: {
+  fontSize: 11,
+  fontWeight: "600",
+},
+
+statusValue: {
+  fontSize: 14,
+  fontWeight: "800",
+  marginTop: 2,
+},
+
+
+
+  chevWrap: {
+  width: 28,
+  height: 28,
+  alignItems: "center",
+  justifyContent: "center",
+  borderRadius: 999,
+  backgroundColor: "rgba(2, 6, 23, 0.45)", // match your dark header
+},
+
+
+featuresChevronWrap: {
+  width: 28,
+  height: 28,
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+  featuresSection: {
+  marginTop: 14,
+},
+featuresHeader: {
+  width: "100%",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+  paddingHorizontal: 4,
+  marginBottom: 10,
+},
+
+featuresTitle: {
+  color: "#E5E7EB",
+  fontSize: 14,
+  fontWeight: "700",
+},
+
+
+// center button
+lockCenterWrap: {
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+lockRingOuter: {
+  width: 190,
+  height: 190,
+  borderRadius: 999,
+  borderWidth: 1,
+  borderColor: "rgba(17,24,39,0.14)",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+lockRingMid: {
+  width: 150,
+  height: 150,
+  borderRadius: 999,
+  borderWidth: 1,
+  borderColor: "rgba(17,24,39,0.12)",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+lockRingInner: {
+  width: 108,
+  height: 108,
+  borderRadius: 999,
+  alignItems: "center",
+  justifyContent: "center",
+  borderWidth: 1,
+  backgroundColor: "rgba(255,255,255,0.9)",
+},
+
+lockCenterSquare: {
+  width: 18,
+  height: 18,
+  borderRadius: 3,
+  borderWidth: 2,
+},
+
+heroActionTextCenter: {
+  marginTop: 12,
+  fontSize: 11,
+  color: "#9CA3AF",
+  fontWeight: "600",
+},
+
+gateBelowWrap: {
+  marginTop: 14,
+  width: "100%",
+  alignItems: "center",
+},
+
+gatePill: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 8,
+  paddingHorizontal: 14,
+  paddingVertical: 10,
+  borderRadius: 999,
+  borderWidth: 1,
+},
+
+gatePillOn: {
+  borderColor: "#22C55E55",
+  backgroundColor: "#16A34A25",
+},
+
+gatePillOff: {
+  borderColor: "#EF444455",
+  backgroundColor: "#7F1D1D25",
+},
+
+gatePillText: {
+  fontSize: 12,
+  fontWeight: "700",
+},
+
+gatePillTextOn: {
+  color: "#E5E7EB",
+},
+
+gatePillTextOff: {
+  color: "#FCA5A5",
+},
+
+// center button
 
   // start alex top cheron
   menuOverlay: {
@@ -969,7 +1227,8 @@ roomDivider: {
     color: "#6B7280",
   },
   roomTabTextActive: {
-    color: "#F9FAFB",
+    // color: "#F9FAFB",
+    color: "#2563EB",
     fontWeight: "600",
   },
   menuPill: {
@@ -1059,11 +1318,12 @@ roomDivider: {
     
   },
 
-  heroMiddleRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginVertical: 8,
-  },
+heroMiddleRow: {
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  marginVertical: 8,
+},
   deviceCircle: {
     flex: 1,
     alignItems: "center",
@@ -1084,8 +1344,8 @@ roomDivider: {
   },
   // lockCircle
   lockCircle: {
-    width: 82,
-    height: 85,
+    width: 130,
+    height: 130,
     borderRadius: 999,
     justifyContent: "center",
     alignItems: "center",

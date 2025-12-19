@@ -6,6 +6,8 @@ import { View } from "react-native";
 
 export default function TabsLayout() {
   return (
+    // <ThemeProvider>
+      // <Stack>
     <Tabs
       screenOptions={{
         headerShown: false,
@@ -78,6 +80,7 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    // </Stack>
   );
 }
 

@@ -102,7 +102,7 @@ export default function SmartwatchScreen() {
               <Text style={sw.todayTitle}>Today</Text>
             </View>
 
-            <View style={sw.weatherTop}>
+            <View style={sw.weatherTop}>58
               <Text style={sw.tempText}>{temp}</Text>
               <CloudSun size={22} color="#22D3EE" />
             </View>
