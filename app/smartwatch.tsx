@@ -20,10 +20,39 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+
+// ✅ adjust this path to where your ThemeProvider file is
+import { Theme, useTheme } from "../app/theme/ThemeProvider";
+
+type MetricCardProps = {
+  theme: Theme;
+  accent: string;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  title: string;
+  right: string;
+  sub?: string;
+  footerRight?: string;
+  children?: React.ReactNode;
+};
+
+type KpiRowProps = { theme: Theme; label: string; value: string };
+type HrStatProps = { theme: Theme; label: string; value: string };
+type LegendDotProps = { theme: Theme; color: string; label: string };
+type MiniKpiProps = { theme: Theme; label: string; value: string; hint?: string };
 
 export default function SmartwatchScreen() {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const [homeMenuVisible, setHomeMenuVisible] = useState(false);
+
+  const { theme, mode } = useTheme();
+
+  // ✅ Fix TS overload: ensure literal tuple
+  const pageGradient =
+    mode === "dark"
+      ? (["#020617", "#020617"] as const)
+      : (["#F8FAFC", "#F8FAFC"] as const);
 
   // demo values (replace with real device data later)
   const today = "2025/12/15, Monday";
@@ -46,200 +75,226 @@ export default function SmartwatchScreen() {
   const mai = 78; // arbitrary score 0-100
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <LinearGradient colors={["#020617", "#020617"]} style={styles.safe}>
-        {/* TOP DROPDOWN HEADER (Alex's Watch) */}
-        <View style={styles.homeHeaderRow}>
-          <TouchableOpacity
-            style={styles.homeNameRow}
-            onPress={() => setHomeMenuVisible((v) => !v)}
-            activeOpacity={0.8}
-          >
-            <Text style={styles.homeNameText}>Alex’s Watch</Text>
-            <ChevronDown size={16} color="#E5E7EB" />
-          </TouchableOpacity>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]}>
+      <View style={[styles.container, { paddingTop: insets.top, backgroundColor: theme.bg }]}>
+        <LinearGradient
+          colors={pageGradient}
+          style={[styles.safe, { backgroundColor: theme.bg }]}
+        >
+          {/* TOP DROPDOWN HEADER (Alex's Watch) */}
+          <View style={styles.homeHeaderRow}>
+            <TouchableOpacity
+              style={styles.homeNameRow}
+              onPress={() => setHomeMenuVisible((v) => !v)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.homeNameText, { color: theme.text }]}>
+                Alex’s Watch
+              </Text>
+              <ChevronDown size={16} color={theme.text} />
+            </TouchableOpacity>
 
-          {/* right side is optional - keep empty for now */}
-          <View />
-        </View>
-
-        {/* DROPDOWN MENU */}
-        {homeMenuVisible && (
-          <TouchableOpacity
-            style={styles.menuOverlay}
-            activeOpacity={1}
-            onPress={() => setHomeMenuVisible(false)}
-          >
-            <View style={styles.homeMenu}>
-              <TouchableOpacity
-                style={styles.homeMenuItem}
-                onPress={() => {
-                  setHomeMenuVisible(false);
-                  router.replace("/(tabs)/home");
-                }}
-              >
-                <Text style={styles.homeMenuText}>Alex’s Home</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.homeMenuItem}
-                onPress={() => {
-                  setHomeMenuVisible(false);
-                  router.replace("/smartwatch");
-                }}
-              >
-                <Text style={styles.homeMenuTextActive}>Alex’s Watch</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
-        )}
-
-        <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
-          {/* HEADER */}
-          <View style={sw.headerWrap}>
-            <View>
-              <Text style={sw.dateText}>{today}</Text>
-              <Text style={sw.todayTitle}>Today</Text>
-            </View>
-
-            <View style={sw.weatherTop}>58
-              <Text style={sw.tempText}>{temp}</Text>
-              <CloudSun size={22} color="#22D3EE" />
-            </View>
+            <View />
           </View>
 
-          {/* TIMELINE LIST */}
-          <View style={sw.timelineWrap}>
-            <View style={sw.timelineLine} />
-
-            <MetricCard
-              accent="#22C55E"
-              icon={Footprints}
-              title="Steps"
-              right={`${steps} Steps`}
-              sub="15/12/2025 1:38 pm"
-              footerRight={`Goal: ${goalSteps} steps`}
+          {/* DROPDOWN MENU */}
+          {homeMenuVisible && (
+            <TouchableOpacity
+              style={styles.menuOverlay}
+              activeOpacity={1}
+              onPress={() => setHomeMenuVisible(false)}
             >
-              <View style={sw.cardRow}>
-                <View style={sw.kpiCol}>
-                  <KpiRow label="Kilometers" value="0" />
-                  <KpiRow label="Kcal" value="0" />
-                  <KpiRow label="Steps" value={`${steps}`} />
+              <View
+                style={[
+                  styles.homeMenu,
+                  { backgroundColor: theme.card, borderColor: theme.border },
+                ]}
+              >
+                <TouchableOpacity
+                  style={styles.homeMenuItem}
+                  onPress={() => {
+                    setHomeMenuVisible(false);
+                    router.replace("/(tabs)/home");
+                  }}
+                >
+                  <Text style={[styles.homeMenuText, { color: theme.text }]}>
+                    Alex’s Home
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.homeMenuItem}
+                  onPress={() => {
+                    setHomeMenuVisible(false);
+                    router.replace("/smartwatch");
+                  }}
+                >
+                  <Text style={[styles.homeMenuTextActive, { color: theme.accent }]}>
+                    Alex’s Watch
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          )}
+
+          <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
+            {/* HEADER */}
+            <View style={sw.headerWrap}>
+              <View>
+                <Text style={[sw.dateText, { color: theme.muted }]}>{today}</Text>
+                <Text style={[sw.todayTitle, { color: theme.text }]}>Today</Text>
+              </View>
+
+              <View style={sw.weatherTop}>
+                <Text style={[sw.tempText, { color: theme.text }]}>{temp}</Text>
+                <CloudSun size={22} color={theme.accent} />
+              </View>
+            </View>
+
+            {/* TIMELINE LIST */}
+            <View style={sw.timelineWrap}>
+              <View style={[sw.timelineLine, { backgroundColor: theme.border }]} />
+
+              <MetricCard
+                theme={theme}
+                accent="#22C55E"
+                icon={Footprints}
+                title="Steps"
+                right={`${steps} Steps`}
+                sub="15/12/2025 1:38 pm"
+                footerRight={`Goal: ${goalSteps} steps`}
+              >
+                <View style={sw.cardRow}>
+                  <View style={sw.kpiCol}>
+                    <KpiRow theme={theme} label="Kilometers" value="0" />
+                    <KpiRow theme={theme} label="Kcal" value="0" />
+                    <KpiRow theme={theme} label="Steps" value={`${steps}`} />
+                  </View>
+
+                  <View style={sw.ringsWrap}>
+                    <View style={[sw.ring, { borderColor: "#22C55E30" }]} />
+                    <View style={[sw.ringInner, { borderColor: "#22D3EE30" }]} />
+                    <View style={[sw.ringCore, { borderColor: "#A78BFA30" }]} />
+                  </View>
+                </View>
+              </MetricCard>
+
+              <MetricCard
+                theme={theme}
+                accent="#A855F7"
+                icon={BedDouble}
+                title="Sleep"
+                right={`${sleepHours}Hour ${sleepMins}Min`}
+                sub="15/12/2025"
+              >
+                <View style={sw.legendRow}>
+                  <LegendDot theme={theme} color="#A78BFA" label="Light sleep" />
+                  <LegendDot theme={theme} color="#7C3AED" label="Deep sleep" />
+                  <LegendDot theme={theme} color="#F59E0B" label="Eye movement" />
+                  <LegendDot theme={theme} color="#22D3EE" label="Wake" />
+                </View>
+                <Text style={[sw.noDataText, { color: theme.muted }]}>No data</Text>
+              </MetricCard>
+
+              <MetricCard
+                theme={theme}
+                accent="#EF4444"
+                icon={Heart}
+                title="Heart rate"
+                right={`${hr} BPM`}
+                sub="15/12/2025 1:37 pm"
+              >
+                <View style={sw.hrStatsRow}>
+                  <HrStat theme={theme} label="Minimum" value={`${hrMin} BPM`} />
+                  <HrStat theme={theme} label="Average value" value={`${hrAvg} BPM`} />
+                  <HrStat theme={theme} label="Maximum" value={`${hrMax} BPM`} />
                 </View>
 
-                <View style={sw.ringsWrap}>
-                  <View style={[sw.ring, { borderColor: "#22C55E30" }]} />
-                  <View style={[sw.ringInner, { borderColor: "#22D3EE30" }]} />
-                  <View style={[sw.ringCore, { borderColor: "#A78BFA30" }]} />
+                <View style={sw.zoneBar}>
+                  <View style={[sw.zoneSeg, { backgroundColor: "#FDE68A" }]} />
+                  <View style={[sw.zoneSeg, { backgroundColor: "#F59E0B" }]} />
+                  <View style={[sw.zoneSeg, { backgroundColor: "#FB7185" }]} />
+                  <View style={[sw.zoneSeg, { backgroundColor: "#EF4444" }]} />
                 </View>
-              </View>
-            </MetricCard>
 
-            <MetricCard
-              accent="#A855F7"
-              icon={BedDouble}
-              title="Sleep"
-              right={`${sleepHours}Hour ${sleepMins}Min`}
-              sub="15/12/2025"
-            >
-              <View style={sw.legendRow}>
-                <LegendDot color="#A78BFA" label="Light sleep" />
-                <LegendDot color="#7C3AED" label="Deep sleep" />
-                <LegendDot color="#F59E0B" label="Eye movement" />
-                <LegendDot color="#22D3EE" label="Wake" />
-              </View>
-              <Text style={sw.noDataText}>No data</Text>
-            </MetricCard>
+                <View style={sw.zoneLabelsRow}>
+                  <Text style={[sw.zoneLabel, { color: theme.muted }]}>Warm up</Text>
+                  <Text style={[sw.zoneLabel, { color: theme.muted }]}>Endurance</Text>
+                  <Text style={[sw.zoneLabel, { color: theme.muted }]}>Strengthen</Text>
+                  <Text style={[sw.zoneLabel, { color: theme.muted }]}>Anaerobic</Text>
+                </View>
+              </MetricCard>
 
-            <MetricCard
-              accent="#EF4444"
-              icon={Heart}
-              title="Heart rate"
-              right={`${hr} BPM`}
-              sub="15/12/2025 1:37 pm"
-            >
-              <View style={sw.hrStatsRow}>
-                <HrStat label="Minimum" value={`${hrMin} BPM`} />
-                <HrStat label="Average value" value={`${hrAvg} BPM`} />
-                <HrStat label="Maximum" value={`${hrMax} BPM`} />
-              </View>
+              <MetricCard
+                theme={theme}
+                accent="#22D3EE"
+                icon={Droplets}
+                title="SpO₂"
+                right={`${spo2}%`}
+                sub="Last measured today"
+              >
+                <MiniKpi
+                  theme={theme}
+                  label="Blood oxygen saturation"
+                  value={`${spo2}%`}
+                  hint="Normal: 95–100%"
+                />
+              </MetricCard>
 
-              <View style={sw.zoneBar}>
-                <View style={[sw.zoneSeg, { backgroundColor: "#FDE68A" }]} />
-                <View style={[sw.zoneSeg, { backgroundColor: "#F59E0B" }]} />
-                <View style={[sw.zoneSeg, { backgroundColor: "#FB7185" }]} />
-                <View style={[sw.zoneSeg, { backgroundColor: "#EF4444" }]} />
-              </View>
+              <MetricCard
+                theme={theme}
+                accent="#F59E0B"
+                icon={Activity}
+                title="HRV"
+                right={`${hrv} ms`}
+                sub="Last measured today"
+              >
+                <MiniKpi
+                  theme={theme}
+                  label="Heart rate variability"
+                  value={`${hrv} ms`}
+                  hint="Higher often indicates better recovery"
+                />
+              </MetricCard>
 
-              <View style={sw.zoneLabelsRow}>
-                <Text style={sw.zoneLabel}>Warm up</Text>
-                <Text style={sw.zoneLabel}>Endurance</Text>
-                <Text style={sw.zoneLabel}>Strengthen</Text>
-                <Text style={sw.zoneLabel}>Anaerobic</Text>
-              </View>
-            </MetricCard>
+              <MetricCard
+                theme={theme}
+                accent="#60A5FA"
+                icon={Wind}
+                title="Respiratory Rate"
+                right={`${resp} /min`}
+                sub="Last measured today"
+              >
+                <MiniKpi
+                  theme={theme}
+                  label="Breaths per minute"
+                  value={`${resp}`}
+                  hint="Typical resting: ~12–20 /min"
+                />
+              </MetricCard>
 
-            <MetricCard
-              accent="#22D3EE"
-              icon={Droplets}
-              title="SpO₂"
-              right={`${spo2}%`}
-              sub="Last measured today"
-            >
-              <MiniKpi
-                label="Blood oxygen saturation"
-                value={`${spo2}%`}
-                hint="Normal: 95–100%"
-              />
-            </MetricCard>
-
-            <MetricCard
-              accent="#F59E0B"
-              icon={Activity}
-              title="HRV"
-              right={`${hrv} ms`}
-              sub="Last measured today"
-            >
-              <MiniKpi
-                label="Heart rate variability"
-                value={`${hrv} ms`}
-                hint="Higher often indicates better recovery"
-              />
-            </MetricCard>
-
-            <MetricCard
-              accent="#60A5FA"
-              icon={Wind}
-              title="Respiratory Rate"
-              right={`${resp} /min`}
-              sub="Last measured today"
-            >
-              <MiniKpi
-                label="Breaths per minute"
-                value={`${resp}`}
-                hint="Typical resting: ~12–20 /min"
-              />
-            </MetricCard>
-
-            <MetricCard
-              accent="#22C55E"
-              icon={TrendingUp}
-              title="MAI score"
-              right={`${mai}/100`}
-              sub="Daily wellness index"
-            >
-              <MiniKpi
-                label="Overall readiness"
-                value={`${mai}/100`}
-                hint="Based on activity + sleep + vitals"
-              />
-              <View style={sw.progressTrack}>
-                <View style={[sw.progressFill, { width: `${mai}%` }]} />
-              </View>
-            </MetricCard>
-          </View>
-        </ScrollView>
-      </LinearGradient>
+              <MetricCard
+                theme={theme}
+                accent="#22C55E"
+                icon={TrendingUp}
+                title="MAI score"
+                right={`${mai}/100`}
+                sub="Daily wellness index"
+              >
+                <MiniKpi
+                  theme={theme}
+                  label="Overall readiness"
+                  value={`${mai}/100`}
+                  hint="Based on activity + sleep + vitals"
+                />
+                <View style={[sw.progressTrack, { backgroundColor: theme.border }]}>
+                  <View style={[sw.progressFill, { width: `${mai}%` }]} />
+                </View>
+              </MetricCard>
+            </View>
+          </ScrollView>
+        </LinearGradient>
+      </View>
     </SafeAreaView>
   );
 }
@@ -247,6 +302,7 @@ export default function SmartwatchScreen() {
 /* ---------- blocks ---------- */
 
 function MetricCard({
+  theme,
   accent,
   icon: Icon,
   title,
@@ -254,23 +310,33 @@ function MetricCard({
   sub,
   footerRight,
   children,
-}: any) {
+}: MetricCardProps) {
   return (
     <View style={sw.itemRow}>
-      <View style={[sw.bubble, { backgroundColor: `${accent}20` }]}>
+      <View
+        style={[
+          sw.bubble,
+          {
+            backgroundColor: `${accent}20`,
+            borderColor: theme.border,
+          },
+        ]}
+      >
         <Icon size={22} color={accent} />
       </View>
 
-      <View style={sw.card}>
+      <View style={[sw.card, { backgroundColor: theme.card, borderColor: theme.border }]}>
         <View style={sw.cardHeader}>
           <View>
-            <Text style={sw.cardTitle}>{title}</Text>
-            {sub ? <Text style={sw.cardSub}>{sub}</Text> : null}
+            <Text style={[sw.cardTitle, { color: theme.text }]}>{title}</Text>
+            {sub ? <Text style={[sw.cardSub, { color: theme.muted }]}>{sub}</Text> : null}
           </View>
 
           <View style={{ alignItems: "flex-end" }}>
-            <Text style={sw.cardRight}>{right}</Text>
-            {footerRight ? <Text style={sw.cardSub}>{footerRight}</Text> : null}
+            <Text style={[sw.cardRight, { color: theme.text }]}>{right}</Text>
+            {footerRight ? (
+              <Text style={[sw.cardSub, { color: theme.muted }]}>{footerRight}</Text>
+            ) : null}
           </View>
         </View>
 
@@ -280,39 +346,39 @@ function MetricCard({
   );
 }
 
-function KpiRow({ label, value }: any) {
+function KpiRow({ theme, label, value }: KpiRowProps) {
   return (
     <View style={sw.kpiRow}>
-      <Text style={sw.kpiLabel}>{value}</Text>
-      <Text style={sw.kpiText}>{label}</Text>
+      <Text style={[sw.kpiLabel, { color: theme.text }]}>{value}</Text>
+      <Text style={[sw.kpiText, { color: theme.muted }]}>{label}</Text>
     </View>
   );
 }
 
-function HrStat({ label, value }: any) {
+function HrStat({ theme, label, value }: HrStatProps) {
   return (
     <View style={{ alignItems: "center", flex: 1 }}>
-      <Text style={sw.hrStatLabel}>{label}</Text>
-      <Text style={sw.hrStatValue}>{value}</Text>
+      <Text style={[sw.hrStatLabel, { color: theme.muted }]}>{label}</Text>
+      <Text style={[sw.hrStatValue, { color: theme.text }]}>{value}</Text>
     </View>
   );
 }
 
-function LegendDot({ color, label }: any) {
+function LegendDot({ theme, color, label }: LegendDotProps) {
   return (
     <View style={sw.legendItem}>
       <View style={[sw.legendDot, { backgroundColor: color }]} />
-      <Text style={sw.legendText}>{label}</Text>
+      <Text style={[sw.legendText, { color: theme.muted }]}>{label}</Text>
     </View>
   );
 }
 
-function MiniKpi({ label, value, hint }: any) {
+function MiniKpi({ theme, label, value, hint }: MiniKpiProps) {
   return (
     <View>
-      <Text style={sw.miniLabel}>{label}</Text>
-      <Text style={sw.miniValue}>{value}</Text>
-      {hint ? <Text style={sw.miniHint}>{hint}</Text> : null}
+      <Text style={[sw.miniLabel, { color: theme.muted }]}>{label}</Text>
+      <Text style={[sw.miniValue, { color: theme.text }]}>{value}</Text>
+      {hint ? <Text style={[sw.miniHint, { color: theme.muted }]}>{hint}</Text> : null}
     </View>
   );
 }
@@ -320,9 +386,14 @@ function MiniKpi({ label, value, hint }: any) {
 /* ---------- styles ---------- */
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: "#020617" },
+  safe: { flex: 1 },
+    container: {
+    paddingVertical: 5,
+    flex: 1,
+    paddingHorizontal: 0,
+  },
 
-  // dropdown styles (same style language as your home)
+
   menuOverlay: {
     position: "absolute",
     top: 0,
@@ -335,20 +406,18 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 56,
     left: 16,
-    backgroundColor: "#0B1220",
     borderRadius: 18,
     paddingVertical: 8,
     width: 220,
     borderWidth: 1,
-    borderColor: "#1F2937",
     shadowColor: "#000",
-    shadowOpacity: 0.4,
+    shadowOpacity: 0.18,
     shadowRadius: 12,
     shadowOffset: { width: 0, height: 8 },
   },
   homeMenuItem: { paddingHorizontal: 16, paddingVertical: 12 },
-  homeMenuText: { color: "#E5E7EB", fontSize: 14 },
-  homeMenuTextActive: { color: "#22D3EE", fontSize: 14, fontWeight: "700" },
+  homeMenuText: { fontSize: 14 },
+  homeMenuTextActive: { fontSize: 14, fontWeight: "700" },
 
   homeHeaderRow: {
     flexDirection: "row",
@@ -360,7 +429,6 @@ const styles = StyleSheet.create({
   },
   homeNameRow: { flexDirection: "row", alignItems: "center" },
   homeNameText: {
-    color: "#F9FAFB",
     fontSize: 18,
     fontWeight: "600",
     marginRight: 6,
@@ -376,15 +444,14 @@ const sw = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  dateText: { color: "#9CA3AF", fontSize: 12 },
+  dateText: { fontSize: 12 },
   todayTitle: {
-    color: "#F9FAFB",
     fontSize: 34,
     fontWeight: "700",
     marginTop: 6,
   },
   weatherTop: { flexDirection: "row", alignItems: "center", gap: 8, marginTop: 18 },
-  tempText: { color: "#E5E7EB", fontSize: 14, fontWeight: "600" },
+  tempText: { fontSize: 14, fontWeight: "600" },
 
   timelineWrap: { marginTop: 8, paddingHorizontal: 16 },
   timelineLine: {
@@ -393,7 +460,6 @@ const sw = StyleSheet.create({
     top: 6,
     bottom: 0,
     width: 2,
-    backgroundColor: "#111827",
     borderRadius: 999,
   },
 
@@ -407,15 +473,11 @@ const sw = StyleSheet.create({
     marginRight: 12,
     zIndex: 2,
     borderWidth: 1,
-    borderColor: "#111827",
-    backgroundColor: "#0B1220",
   },
 
   card: {
     flex: 1,
-    backgroundColor: "#020617",
     borderWidth: 1,
-    borderColor: "#111827",
     borderRadius: 18,
     padding: 14,
   },
@@ -425,15 +487,15 @@ const sw = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "flex-start",
   },
-  cardTitle: { color: "#E5E7EB", fontSize: 16, fontWeight: "700" },
-  cardSub: { color: "#9CA3AF", fontSize: 11, marginTop: 2 },
-  cardRight: { color: "#E5E7EB", fontSize: 16, fontWeight: "800" },
+  cardTitle: { fontSize: 16, fontWeight: "700" },
+  cardSub: { fontSize: 11, marginTop: 2 },
+  cardRight: { fontSize: 16, fontWeight: "800" },
 
   cardRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
   kpiCol: { gap: 10 },
   kpiRow: { flexDirection: "row", alignItems: "baseline", gap: 10 },
-  kpiLabel: { color: "#E5E7EB", fontSize: 14, fontWeight: "700", width: 38 },
-  kpiText: { color: "#9CA3AF", fontSize: 12 },
+  kpiLabel: { fontSize: 14, fontWeight: "700", width: 38 },
+  kpiText: { fontSize: 12 },
 
   ringsWrap: { width: 120, height: 120, alignItems: "center", justifyContent: "center" },
   ring: { width: 110, height: 110, borderRadius: 999, borderWidth: 10 },
@@ -443,27 +505,26 @@ const sw = StyleSheet.create({
   legendRow: { flexDirection: "row", flexWrap: "wrap", gap: 12, marginBottom: 10 },
   legendItem: { flexDirection: "row", alignItems: "center", gap: 6 },
   legendDot: { width: 8, height: 8, borderRadius: 999 },
-  legendText: { color: "#9CA3AF", fontSize: 12 },
-  noDataText: { textAlign: "center", color: "#9CA3AF", marginTop: 12, fontSize: 12 },
+  legendText: { fontSize: 12 },
+  noDataText: { textAlign: "center", marginTop: 12, fontSize: 12 },
 
   hrStatsRow: { flexDirection: "row", justifyContent: "space-between", marginBottom: 10, gap: 8 },
-  hrStatLabel: { color: "#9CA3AF", fontSize: 11 },
-  hrStatValue: { color: "#E5E7EB", fontSize: 12, fontWeight: "700", marginTop: 3 },
+  hrStatLabel: { fontSize: 11 },
+  hrStatValue: { fontSize: 12, fontWeight: "700", marginTop: 3 },
 
   zoneBar: { height: 10, borderRadius: 999, overflow: "hidden", flexDirection: "row" },
   zoneSeg: { flex: 1 },
   zoneLabelsRow: { flexDirection: "row", justifyContent: "space-between", marginTop: 8 },
-  zoneLabel: { color: "#9CA3AF", fontSize: 10 },
+  zoneLabel: { fontSize: 10 },
 
-  miniLabel: { color: "#9CA3AF", fontSize: 12 },
-  miniValue: { color: "#E5E7EB", fontSize: 22, fontWeight: "800", marginTop: 4 },
-  miniHint: { color: "#6B7280", fontSize: 11, marginTop: 4 },
+  miniLabel: { fontSize: 12 },
+  miniValue: { fontSize: 22, fontWeight: "800", marginTop: 4 },
+  miniHint: { fontSize: 11, marginTop: 4 },
 
   progressTrack: {
     marginTop: 10,
     height: 10,
     borderRadius: 999,
-    backgroundColor: "#111827",
     overflow: "hidden",
   },
   progressFill: { height: "100%", backgroundColor: "#22C55E", borderRadius: 999 },
