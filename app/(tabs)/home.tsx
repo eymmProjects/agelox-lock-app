@@ -88,9 +88,9 @@ const CAMERA_TABS:CameraTab[]=[
 ]
 
 const ROOMS: Room[] = [
-  { id: "bedroom", name: "Bedroom" },
-  { id: "living", name: "Living room" },
-  { id: "kitchen", name: "Kitchen" },
+  { id: "Front Door", name: "Front Door" },
+  { id: "Back Door", name: "Back Door" },
+
 ];
 
 
@@ -317,7 +317,7 @@ const toggleFeatures = () => {
         <View style={[styles.metricsRow]}>
           <View style={{ flexDirection: "column" }}>
             {/* Tabs */}
-                  <View style={styles.cameraTabsRow}>
+          {/*         <View style={styles.cameraTabsRow}>
             {CAMERA_TABS.map((t) => {
               const active = t.id === cameraTab.id;
               return (
@@ -344,7 +344,7 @@ const toggleFeatures = () => {
               );
             })}
           </View>
-
+ */}
 
             {/* Lock status row */}
             <View style={styles.statusHeaderRow}>
@@ -370,9 +370,9 @@ const toggleFeatures = () => {
                   {lockStatus}
                 </Text>
 
-                <Text style={[styles.metricSub, { color: theme.muted }]}>
+                {/* <Text style={[styles.metricSub, { color: theme.muted }]}>
                   {cameraTab.id === "front" ? "Front Door" : "Back Door"}
-                </Text>
+                </Text> */}
 
               </View>
 
