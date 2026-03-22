@@ -179,7 +179,7 @@ export default function DevicesScreen() {
                 style={styles.advancedHeader}
               >
                 <Text style={[styles.cardTitle, { color: theme.text }]}>
-                  Advanced Settings
+                  Security Mode
                 </Text>
 
                 <ChevronRight
